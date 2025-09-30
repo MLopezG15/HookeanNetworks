@@ -1,0 +1,158 @@
+module HookeanNetworks
+using LinearAlgebra,Statistics
+
+export TriangLattice
+
+function Distancia(v1,v2) #Distancia entre 2 puntos
+    return(norm(v2.-v1)) 
+end
+
+function isneigh(R1, R2, v;tol=1e-3) #Checa si hay vecinos 
+    for i in v
+        if (Distancia(R1+i, R2) < tol)
+            return true
+        end
+    end
+    return false
+end
+
+function define_network(N1, N2, a1, a2, V, tol=1e-3)
+
+    X = [a1[1]*x+a2[1]*y for x in 0:N1 for y in 0:N2];
+    Y = [a1[2]*x+a2[2]*y for x in 0:N1 for y in 0:N2];
+    
+    edges = [(i, j) 
+        for i in eachindex(X)
+            for j in 1:length(X) if isneigh([X[i], Y[i]], [X[j], Y[j]], V) ];
+
+    vertices = [X,Y]
+
+    return vertices, edges
+end
+
+function acomodar(vertices)
+    Ver=zeros(2,length(vertices[1]))
+    [Ver[:,i]=[vertices[1][i], vertices[2][i]]   for i in eachindex(vertices[1])]
+    return Ver
+end
+
+function CentroMasa(Frame)
+    Xmasa=mean(Frame[1,:])
+    Ymasa=mean(Frame[2,:])
+    Masa=[0.0, 0.0]
+    Masa[1]=Xmasa;Masa[2]=Ymasa;
+    return Masa
+end
+function CortEnlRand(edges, vertices,k_normal; k_cut=0.0 )
+    num_v = size(vertices, 2)
+    N = Int(round(sqrt(num_v)))
+    idx(u,v) = u + v*N
+    targets = Set{Tuple{Int,Int}}()
+    interior= Set{Tuple{Int,Int}}()
+    for v0 in 0:2:(N-3), u0 in 1:2:(N-2)
+        # dos triángulos por super-super celda
+        blue = [
+            (idx(u0+1,v0),   idx(u0+1,v0+1)),
+            (idx(u0+1,v0),   idx(u0,  v0+1)),
+            (idx(u0,  v0+1), idx(u0+1,v0+1))
+        ]
+        red = [
+            (idx(u0+1,v0+1), idx(u0+1,v0+2)),
+            (idx(u0+2,v0+1), idx(u0+1,v0+2)),
+            (idx(u0+1,v0+1), idx(u0+2,v0+1))
+        ]
+        # elegir 1 enlace al azar de cada triángulo
+        for tri in (blue, red)
+            for i in tri 
+                c,d=i
+                push!(interior,(c,d))
+            end
+            #push!(interior,(c,d))
+            a, b = rand(tri)
+            a>b && ((a,b)=(b,a))
+            push!(targets, (a,b))
+        end
+    end
+    k = fill(k_normal, (size(edges,1),2))
+    Kint=[]
+    for i in eachindex(k[:,1])
+        a, b = Int(edges[i][1]), Int(edges[i][2])
+        a>b && ((a,b)=(b,a))
+        if (a,b) in interior
+            k[i,:]=[k_normal, 25]
+            push!(Kint,edges[i])
+        end
+        if (a,b) in targets
+            k[i,:] = [k_cut, 0]
+            pop!(Kint)
+        end
+    end
+    return k,Kint
+end
+
+function CortEnlOrd(edges, vertices,η,ζ,k_normal; k_cut=0.0, )
+    num_v = size(vertices, 2)
+    N = Int(round(sqrt(num_v)))
+    idx(u,v) = u + v*N
+    targets = Set{Tuple{Int,Int}}()
+    interior= Set{Tuple{Int,Int}}()
+    for v0 in 0:2:(N-3), u0 in 1:2:(N-2)
+        # dos triángulos por super-super celda
+        blue = [
+            (idx(u0+1,v0),   idx(u0+1,v0+1)),
+            (idx(u0+1,v0),   idx(u0,  v0+1)),
+            (idx(u0,  v0+1), idx(u0+1,v0+1))
+        ]
+        red = [
+            (idx(u0+1,v0+1), idx(u0+1,v0+2)),
+            (idx(u0+2,v0+1), idx(u0+1,v0+2)),
+            (idx(u0+1,v0+1), idx(u0+2,v0+1))
+        ]
+        # elegir 1 enlace al azar de cada triángulo
+        for tri in (blue, red)
+            for i in tri 
+                c,d=i
+                push!(interior,(c,d))
+            end
+            a=tri[η][1] # [#Enlace, Triangulo a cortar] 
+            b = tri[ζ][2]
+            a>b && ((a,b)=(b,a))
+            push!(targets, (a,b))
+        end
+    end
+    k = fill(k_normal, (size(edges,1),2))
+    Kint=[]
+    for i in eachindex(k[:,1])
+        a, b = Int(edges[i][1]), Int(edges[i][2])
+        a>b && ((a,b)=(b,a))
+        if (a,b) in interior
+            k[i,:]=[k_normal, 25]
+            push!(Kint,edges[i])
+        end
+        if (a,b) in targets
+            k[i,:] = [k_cut, 0]
+            pop!(Kint)
+        end
+    end
+    return k,Kint
+end
+
+function TriangLattice(N::Int64,MethodCut::String,η::Int64,ζ::Int64,kval::Float64)
+    a1=[1,0]; a2=[cos(π/3), sin(π/3)]
+    X = [a1[1]*x+a2[1]*y for x in -N/2:N/2 for y in -N/2:N/2];
+    Y = [a1[2]*x+a2[2]*y for x in -N/2:N/2 for y in -N/2:N/2];
+    V = [a1, a2, [cos(2*π/3), sin(2*π /3)]]
+    B = [(i, j) for i in eachindex(X) for j in 1:length(X) if isneigh([X[i], Y[i]], [X[j], Y[j]], V) ]
+    vertices, edges = define_network(N,N,a1,a2,V);vertices=acomodar(vertices)
+    vertices.-=CentroMasa(vertices)
+    if MethodCut=="Random"
+        Kvec,Kint=CortEnlRand(edges,vertices,kval)
+    elseif MethodCut=="Ord"
+        Kvec,Kint=CortEnlOrd(edges,vertices,η,ζ,kval)
+    else throw(DomainError(MethodCut,"Only Random and Ord are elegible choices"))
+    end
+    return vertices,edges,Kvec,Kint
+end
+
+
+end # module HookeanNetworks
