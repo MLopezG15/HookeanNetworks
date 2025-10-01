@@ -188,7 +188,7 @@ function wca_force(r,ε, σ)
     end
 end
 
-function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Vel::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;Damp::Bool=false,WCA::Bool=false,GaussPulse::Bool=true,r0::Float64=1.0,γ::Float64=0.2,σF::Float64=0.5,t0::Float64=3.0,A::Float64=6.0,M::Int64=1,ε::Float64=0.1, σ::Float64=0.35,GaussCutOff::Float64=10.0)
+function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Vel::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;Damp::Bool=true,WCA::Bool=true,GaussPulse::Bool=true,r0::Float64=1.0,γ::Float64=0.2,σF::Float64=0.5,t0::Float64=3.0,A::Float64=1.0,M::Int64=1,ε::Float64=0.1, σ::Float64=0.35,GaussCutOff::Float64=10.0)
     F=zeros(size(vertices))
     r1=[];r2=[];
     #CCM=UnCentroMasa(vertices)
@@ -203,11 +203,11 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
         
         mag_elast= -k*(dist-r0)
         F_elas=mag_elast.*direccion 
-        fuer_Tot= F_elas
+        fuer_Tot= -1 .*F_elas
         if WCA 
             MagFWCA=wca_force(dist,ε,σ)
             WCAProy= MagFWCA.*(direccion)
-            fuer_Tot=.-WCAProy
+            fuer_Tot.-=WCAProy
         end
         if Damp
             v1=[Vel[1,p1], Vel[2,p1]]
@@ -215,7 +215,7 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
             deltav=(v2.-v1)
             magn_damp= γ*dot(deltav,direccion)
             fuer_damp=magn_damp*direccion
-            fuer_Tot=.-fuer_damp 
+            fuer_Tot.-=fuer_damp 
         end
         F[:,p1].+=fuer_Tot
         F[:,p2].-=fuer_Tot 
