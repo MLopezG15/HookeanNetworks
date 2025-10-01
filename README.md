@@ -16,7 +16,7 @@ Actualmente consta de 2 principales funciones: TriangLattice, y ForceCalc
 ### Uso 
 
 ```julia
-N::Int64; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0
+TriangLattice(N::Int64; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0)
 ```
 
 ## ForceCalc – Cálculo de Fuerzas en Redes de Partículas
