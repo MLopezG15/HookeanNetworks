@@ -126,7 +126,7 @@ function CortEnlOrd(edges, vertices,η,ζ,k_normal; k_cut=0.0, )
         a, b = Int(edges[i][1]), Int(edges[i][2])
         a>b && ((a,b)=(b,a))
         if (a,b) in interior
-            k[i,:]=[k_normal, 25]
+            k[i,:]=[k_normal, (k_normal/2)]
             push!(Kint,edges[i])
         end
         if (a,b) in targets
@@ -178,7 +178,17 @@ function TriangLattice(N::Int; MethodCut::String="None", η=nothing, ζ=nothing,
     return vertices, edges, Kvec, Kint
 end
 
-function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Vel::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;Damp::Bool=false,WCA::Bool=false,GaussPulse::Bool=true,r0::Float64=1.0,γ::Float64=0.2,σF::Float64=0.5,t0::Float64=3.0,A::Float64=6.0,M::Int64=1)
+function wca_force(r,ε, σ)
+    r_cut = 2^(1/6) * σ
+    r_safe = max(r, 1e-6)
+    if r < r_cut
+        return 24ε * (2*(σ^12 / (r_safe)^13) - (σ^6 / (r_safe)^7))
+    else
+        return 0.0
+    end
+end
+
+function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Vel::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;Damp::Bool=false,WCA::Bool=false,GaussPulse::Bool=true,r0::Float64=1.0,γ::Float64=0.2,σF::Float64=0.5,t0::Float64=3.0,A::Float64=6.0,M::Int64=1,ε::Float64=0.1, σ::Float64=0.35)
     F=zeros(size(vertices))
     r1=[];r2=[];
     #CCM=UnCentroMasa(vertices)
@@ -188,24 +198,24 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
         k=Kvec[i,1]
         r1=[vertices[1,p1], vertices[2,p1]]
         r2=[vertices[1,p2], vertices[2,p2]]
-        v1=[Vel[1,p1], Vel[2,p1]]
-        v2=[Vel[1,p2], Vel[2,p2]]
         dist=Distancia(r2,r1)
         direccion=(r2.-r1)./dist
         
-        MagFWCA=wca_force(dist)
-        WCAProy= MagFWCA.*(direccion)
         mag_elast= -k*(dist-r0)
         F_elas=mag_elast.*direccion 
-        deltav=(v2.-v1)
-        magn_damp= γ*dot(deltav,direccion)
-        fuer_damp=magn_damp*direccion
         fuer_Tot=.- F_elas
         if WCA 
+            MagFWCA=wca_force(dist,ε,σ)
+            WCAProy= MagFWCA.*(direccion)
             fuer_Tot=.-WCAProy
         end
         if Damp
-           fuer_Tot=.-fuer_damp 
+            v1=[Vel[1,p1], Vel[2,p1]]
+            v2=[Vel[1,p2], Vel[2,p2]]
+            deltav=(v2.-v1)
+            magn_damp= γ*dot(deltav,direccion)
+            fuer_damp=magn_damp*direccion
+            fuer_Tot=.-fuer_damp 
         end
         F[:,p1].+=fuer_Tot
         F[:,p2].-=fuer_Tot 
