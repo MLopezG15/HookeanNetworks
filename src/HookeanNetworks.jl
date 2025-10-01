@@ -203,7 +203,7 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
         
         mag_elast= -k*(dist-r0)
         F_elas=mag_elast.*direccion 
-        fuer_Tot=.- F_elas
+        fuer_Tot= F_elas
         if WCA 
             MagFWCA=wca_force(dist,ε,σ)
             WCAProy= MagFWCA.*(direccion)
