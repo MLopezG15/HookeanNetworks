@@ -220,7 +220,7 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
     end
     if Damp
         fuer_damp= γ.*Vel
-        fuer_Tot.+=fuer_damp 
+        F.+=fuer_damp 
         end
     return F
 end
