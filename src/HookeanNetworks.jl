@@ -1,7 +1,7 @@
 module HookeanNetworks
 using LinearAlgebra,Statistics
 
-export TriangLattice,ForceCalc
+export TriangLattice,ForceCalc,CentroMasa
 
 function Distancia(v1,v2) #Distancia entre 2 puntos
     return(norm(v2.-v1)) 
@@ -209,14 +209,6 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
             WCAProy= MagFWCA.*(direccion)
             fuer_Tot.-=WCAProy
         end
-        if Damp
-            v1=[Vel[1,p1], Vel[2,p1]]
-            v2=[Vel[1,p2], Vel[2,p2]]
-            deltav=(v2.-v1)
-            magn_damp= γ*dot(deltav,direccion)
-            fuer_damp=magn_damp*direccion
-            fuer_Tot.-=fuer_damp 
-        end
         F[:,p1].+=fuer_Tot
         F[:,p2].-=fuer_Tot 
     end
@@ -226,6 +218,10 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
         F_img[:,M]=DirCm.*A*exp(-((t-t0)^2)/(2*σF)^2) *(t<GaussCutOff)
         F.+=F_img
     end
+    if Damp
+        fuer_damp= γ.*Vel
+        fuer_Tot.+=fuer_damp 
+        end
     return F
 end
 
