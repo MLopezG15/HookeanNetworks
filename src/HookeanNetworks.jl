@@ -149,6 +149,9 @@ function TriangLattice(N::Int64,MethodCut::String,η::Int64,ζ::Int64,kval::Floa
         Kvec,Kint=CortEnlRand(edges,vertices,kval)
     elseif MethodCut=="Ord"
         Kvec,Kint=CortEnlOrd(edges,vertices,η,ζ,kval)
+    elseif MethodCut=="None"
+        Kint=[]
+        Kvec=ones(length(edges),2).*kval
     else throw(DomainError(MethodCut,"Only Random and Ord are elegible choices"))
     end
     return vertices,edges,Kvec,Kint
