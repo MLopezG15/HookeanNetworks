@@ -1,7 +1,7 @@
 module HookeanNetworks
 using LinearAlgebra,Statistics
 
-export TriangLattice
+export TriangLattice,ForceCalc
 
 function Distancia(v1,v2) #Distancia entre 2 puntos
     return(norm(v2.-v1)) 
@@ -137,24 +137,86 @@ function CortEnlOrd(edges, vertices,η,ζ,k_normal; k_cut=0.0, )
     return k,Kint
 end
 
-function TriangLattice(N::Int64,MethodCut::String,η::Int64,ζ::Int64,kval::Float64)
-    a1=[1,0]; a2=[cos(π/3), sin(π/3)]
-    X = [a1[1]*x+a2[1]*y for x in -N/2:N/2 for y in -N/2:N/2];
-    Y = [a1[2]*x+a2[2]*y for x in -N/2:N/2 for y in -N/2:N/2];
-    V = [a1, a2, [cos(2*π/3), sin(2*π /3)]]
-    B = [(i, j) for i in eachindex(X) for j in 1:length(X) if isneigh([X[i], Y[i]], [X[j], Y[j]], V) ]
-    vertices, edges = define_network(N,N,a1,a2,V);vertices=acomodar(vertices)
-    vertices.-=CentroMasa(vertices)
-    if MethodCut=="Random"
-        Kvec,Kint=CortEnlRand(edges,vertices,kval)
-    elseif MethodCut=="Ord"
-        Kvec,Kint=CortEnlOrd(edges,vertices,η,ζ,kval)
-    elseif MethodCut=="None"
-        Kint=[]
-        Kvec=ones(length(edges),2).*kval
-    else throw(DomainError(MethodCut,"Only Random and Ord are elegible choices"))
+
+
+"""
+    TriangLattice(N::Int; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0)
+
+Generates a triangular lattice with `N × N` nodes. Applies edge cutting based on `MethodCut`.
+
+- `MethodCut`: `"Random"`, `"Ord"`, or `"None"`.
+- If `MethodCut == "Ord"`, you must provide `η` and `ζ`.
+- `kval`: coupling strength (default 1.0).
+"""
+function TriangLattice(N::Int; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0)
+    a1 = [1, 0]
+    a2 = [cos(π/3), sin(π/3)]
+    X = [a1[1]*x + a2[1]*y for x in -N÷2:N÷2, y in -N÷2:N÷2]
+    Y = [a1[2]*x + a2[2]*y for x in -N÷2:N÷2, y in -N÷2:N÷2]
+    V = [a1, a2, [cos(2π/3), sin(2π/3)]]
+
+    B = [(i, j) for i in eachindex(X) for j in 1:length(X) if isneigh([X[i], Y[i]], [X[j], Y[j]], V)]
+
+    vertices, edges = define_network(N, N, a1, a2, V)
+    vertices = acomodar(vertices)
+    vertices .-= CentroMasa(vertices)
+
+    if MethodCut == "Random"
+        Kvec, Kint = CortEnlRand(edges, vertices, kval)
+    elseif MethodCut == "Ord"
+        if η === nothing || ζ === nothing
+            throw(ArgumentError("MethodCut='Ord' requires η and ζ to be provided"))
+        end
+        Kvec, Kint = CortEnlOrd(edges, vertices, η, ζ, kval)
+    elseif MethodCut == "None"
+        Kint = []
+        Kvec = ones(length(edges), 2) .* kval
+    else
+        throw(DomainError(MethodCut, "Only 'Random', 'Ord', and 'None' are valid choices"))
     end
-    return vertices,edges,Kvec,Kint
+
+    return vertices, edges, Kvec, Kint
+end
+
+function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Vel::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;Damp::Bool=false,WCA::Bool=false,GaussPulse::Bool=true,r0::Float64=1.0,γ::Float64=0.2,σF::Float64=0.5,t0::Float64=3.0,A::Float64=6.0,M::Int64=1)
+    F=zeros(size(vertices))
+    r1=[];r2=[];
+    #CCM=UnCentroMasa(vertices)
+    for i in eachindex(edges)
+        p1=edges[i][1]
+        p2=edges[i][2]
+        k=Kvec[i,1]
+        r1=[vertices[1,p1], vertices[2,p1]]
+        r2=[vertices[1,p2], vertices[2,p2]]
+        v1=[Vel[1,p1], Vel[2,p1]]
+        v2=[Vel[1,p2], Vel[2,p2]]
+        dist=Distancia(r2,r1)
+        direccion=(r2.-r1)./dist
+        
+        MagFWCA=wca_force(dist)
+        WCAProy= MagFWCA.*(direccion)
+        mag_elast= -k*(dist-r0)
+        F_elas=mag_elast.*direccion 
+        deltav=(v2.-v1)
+        magn_damp= γ*dot(deltav,direccion)
+        fuer_damp=magn_damp*direccion
+        fuer_Tot=.- F_elas
+        if WCA 
+            fuer_Tot=.-WCAProy
+        end
+        if Damp
+           fuer_Tot=.-fuer_damp 
+        end
+        F[:,p1].+=fuer_Tot
+        F[:,p2].-=fuer_Tot 
+    end
+    if GaussPulse
+        F_img=zeros(size(F))
+        DirCm=(vertices[:,M]-CentroMasa(vertices))/norm(vertices[:,M]-CentroMasa(vertices))
+        F_img[:,M]=DirCm.*A*exp(-((t-t0)^2)/(2*σF)^2)
+        F.+=F_img
+    end
+    return F
 end
 
 
