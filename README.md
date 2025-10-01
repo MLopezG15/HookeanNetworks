@@ -34,16 +34,16 @@ Incluye interacciones elásticas, amortiguamiento viscoso, repulsión de tipo We
 
 ### Keywords Opcionales
 - `r0::Float64=1.0` Distancia de reposo para los enlaces de la red
-- `Damp::Bool=false` Activa el amortiguamientos en los resortes
+- `Damp::Bool=true` Activa el amortiguamientos en los resortes
 - `γ::Float64=0.2` Viscosidad del amortiguamiento
-- `WCA::Bool=false` Activa el potencial Weeks-Chandler-Andersen para repulsión
+- `WCA::Bool=true` Activa el potencial Weeks-Chandler-Andersen para repulsión
 - `ε::Float64=0.1` Parámetro de interacción WCA
 - `σ::Float64=0.35` Parámetro de distancia WCA
 - `GaussPulse::Bool=true` Activa una fuerza externa que actúa como una gaussiana sobre 1 particula
 - `M::Int64=1` Indice de la particula a aplicar la fuerza externa
 - `σF::Float64=0.5` Ancho del pulso gaussiano
 - `t0::Float64=3.0` Desplazamiento del pulso gaussiano
-- `A::Float64=6.0` Amplitud del pulso gaussiano
+- `A::Float64=1.0` Amplitud del pulso gaussiano
 - `GaussCutOff::Float64=10.0` Tiempo máximo en el que se aplica el pulso gaussiano 
 
 ### Uso
