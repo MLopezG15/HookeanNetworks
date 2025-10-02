@@ -220,13 +220,13 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
     return F
 end
 
-function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},values,edges)
+function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},values)
     seg = [(points[p1], points[p2]) for (p1, p2) in edges]
     colors=values
     return seg,colors
 end
 
-function RecordVideo(Sim::Array{Float64,3},Title::String,edges,Skips::Int64=10,FR::Int64=50)
+function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Skips::Int64=10,FR::Int64=50)
     data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(Sim[1,1,:])]
     pos = Observable(vec(data[1]));
     disp = Observable(Vector{Vec2f}());  # desplazamientos
