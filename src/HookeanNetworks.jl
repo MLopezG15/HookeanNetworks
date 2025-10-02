@@ -1,7 +1,7 @@
 module HookeanNetworks
 using LinearAlgebra,Statistics
 
-export TriangLattice,ForceCalc,CentroMasa
+export TriangLattice,ForceCalc,CentroMasa,RecordVideo
 
 function Distancia(v1,v2) #Distancia entre 2 puntos
     return(norm(v2.-v1)) 
@@ -43,6 +43,7 @@ function CentroMasa(Frame)
     Masa[1]=Xmasa;Masa[2]=Ymasa;
     return Masa
 end
+
 function CortEnlRand(edges, vertices,k_normal; k_cut=0.0 )
     num_v = size(vertices, 2)
     N = Int(round(sqrt(num_v)))
@@ -137,17 +138,6 @@ function CortEnlOrd(edges, vertices,η,ζ,k_normal; k_cut=0.0, )
     return k,Kint
 end
 
-
-
-"""
-    TriangLattice(N::Int; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0)
-
-Generates a triangular lattice with `N × N` nodes. Applies edge cutting based on `MethodCut`.
-
-- `MethodCut`: `"Random"`, `"Ord"`, or `"None"`.
-- If `MethodCut == "Ord"`, you must provide `η` and `ζ`.
-- `kval`: coupling strength (default 1.0).
-"""
 function TriangLattice(N::Int; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0)
     a1 = [1, 0]
     a2 = [cos(π/3), sin(π/3)]
@@ -230,5 +220,34 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
     return F
 end
 
+function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},values)
+    seg = [(points[p1], points[p2]) for (p1, p2) in edges]
+    colors=values
+    return seg,colors
+end
+
+function RecordVideo(Sim::Array{Float64,3},Title::String,Skips::Int64=10,FR::Int64=50)
+    data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(T)]
+    pos = Observable(vec(data[1]));
+    disp = Observable(Vector{Vec2f}());  # desplazamientos
+    initial = vec(data[1]);  # guarda las posiciones iniciales
+    fig = Figure()
+    ax = Axis(fig[1, 1])
+    scatter!(pos)
+    hidedecorations!(ax,ticks=false)
+    segments = Observable(Vector{Tuple{Point2f, Point2f}}());
+    colors = Observable(Vector{Float32}());
+    linesegments!(ax, segments, color=colors,colormap=:vanimo);
+    record(fig, "$(Title).gif", 1:Skips:length(T)-1; framerate=FR) do t
+        current= vec(data[t])
+        pos[] = current  # actualiza los puntos
+        # Calcula desplazamientos respecto a posición inicial
+        next = vec(data[t+1])  # siguiente frame
+        disp[] = [40 .*Vec2f(next[j] .- current[j]) for j in eachindex(current)]
+        seg,cols=build_segments(current,edges,Kvec[:,2])
+        segments[]=seg
+        colors[]=cols
+    end
+end
 
 end # module HookeanNetworks
