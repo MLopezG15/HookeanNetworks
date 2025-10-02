@@ -367,7 +367,7 @@ function centroidchosen(edges,centroids,N)
 end
 
 function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Frame::Matrix{Float64})
-    N=sqrt(length(Frame[1,:]))
+    N=Int64(sqrt(length(Frame[1,:])))
     adj=build_adj(Kint)
     centroides=centroidchosen(edges,centroids(Kint,N),N)
     cycles = Hacerpoligonos(centroides,adj,Frame)
@@ -377,7 +377,7 @@ end
 
 function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
     R=zeros(1,length(Sim[1,1,:]))
-    N=sqrt(length(Sim[1,:,1]))
+    N=Int64(sqrt(length(Sim[1,:,1])))
     for i in eachindex(Sim[1,1,:])
         cycles=InnerPolygons(Kint,edges,Sim[:,:,i])
         P=zeros(1,length(cycles))
