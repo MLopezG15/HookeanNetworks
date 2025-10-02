@@ -1,5 +1,5 @@
 module HookeanNetworks
-using LinearAlgebra,Statistics,GLMakie
+using LinearAlgebra,Statistics
 
 export TriangLattice,ForceCalc,CentroMasa,RecordVideo
 
@@ -227,7 +227,7 @@ function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},
 end
 
 function RecordVideo(Sim::Array{Float64,3},Title::String,Skips::Int64=10,FR::Int64=50)
-    data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(T)]
+    data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(Sim[1,1,:])]
     pos = Observable(vec(data[1]));
     disp = Observable(Vector{Vec2f}());  # desplazamientos
     initial = vec(data[1]);  # guarda las posiciones iniciales
