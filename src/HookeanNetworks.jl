@@ -1,5 +1,5 @@
 module HookeanNetworks
-using LinearAlgebra,Statistics
+using LinearAlgebra,Statistics,GLMakie
 
 export TriangLattice,ForceCalc,CentroMasa,RecordVideo
 
