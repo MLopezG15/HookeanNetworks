@@ -347,13 +347,13 @@ function Hacerpoligonos(Centroides, adj, Frame)
 end
 
 
-function centroids(Kint)
+function centroids(Kint,N)
     useful=zeros(Int,2,length(Kint))
     [useful[:,i]=[Kint[i][1],Kint[i][2]]  for i in eachindex(Kint)]
     return setdiff(Int(1):Int(1):Int((N+1)^2),useful) ::Vector{Int}
 end
 
-function centroidchosen(edges,centroids)
+function centroidchosen(edges,centroids,N)
     chosen = Tuple{Int, Int}[]
     for c in centroids
         idx = findfirst(t -> c in t && (c+N+1) in t, edges)
@@ -367,8 +367,9 @@ function centroidchosen(edges,centroids)
 end
 
 function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Frame::Matrix{Float64})
+    N=sqrt(length(Sim[1,:,1]))
     adj=build_adj(Kint)
-    centroides=centroidchosen(edges,centroids(Kint))
+    centroides=centroidchosen(edges,centroids(Kint,N),N)
     cycles = Hacerpoligonos(centroides,adj,Frame)
     return cycles
 end
@@ -383,6 +384,7 @@ function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{I
         for (j,c) in enumerate(cycles)
             centr=c[1]-N
             Δϕ=angulo(centr+1-N,centr,Sim[:,:,i])-angulo(centr+1,centr,Sim[:,:,i])
+            P[1,j]=Δϕ
         end
         R[i]=mean(P)
     end
