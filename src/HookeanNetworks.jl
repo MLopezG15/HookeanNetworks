@@ -345,15 +345,15 @@ function Hacerpoligonos(Centroides, adj, Frame)
 end
 
 function centroids(Kint,N)
-    useful=zeros(Int,2,length(Kint))
+    useful=zeros(Int64,2,length(Kint))
     [useful[:,i]=[Kint[i][1],Kint[i][2]]  for i in eachindex(Kint)]
-    return setdiff(Int(1):Int(1):Int((N+1)^2),useful) ::Vector{Int}
+    return setdiff(Int64(1):Int64(1):Int64((N)^2),useful) ::Vector{Int}
 end
 
 function centroidchosen(edges,centroids,N)
     chosen = Tuple{Int, Int}[]
     for c in centroids
-        idx = findfirst(t -> c in t && (c+N+1) in t, edges)
+        idx = findfirst(t -> c in t && (c+N) in t, edges)
         if !isnothing(idx)
             t = edges[idx]
             reordered = t[1] == c ? t : (t[2], t[1])
