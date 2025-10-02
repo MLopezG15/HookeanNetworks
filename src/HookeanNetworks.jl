@@ -250,7 +250,6 @@ function RecordVideo(Sim::Array{Float64,3},Title::String,Skips::Int64=10,FR::Int
     end
 end
 
-
 function angulo(u, v, Frame)
     dx = Frame[1,v] - Frame[1,u]
     dy = Frame[2,v] - Frame[2,u]
@@ -282,7 +281,6 @@ function next_vertex(u, v, adj, Frame; maxdist=1.1)
     sort!(angs, by = x -> x[2])
     return angs[1][1]  # el más cercano en sentido CCW
 end
-
 
 function cleanonecycl(Frame,list,idt)
     picture=Frame[:,:,idt]
@@ -346,7 +344,6 @@ function Hacerpoligonos(Centroides, adj, Frame)
     return cycles
 end
 
-
 function centroids(Kint,N)
     useful=zeros(Int,2,length(Kint))
     [useful[:,i]=[Kint[i][1],Kint[i][2]]  for i in eachindex(Kint)]
@@ -371,9 +368,8 @@ function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Fram
     adj=build_adj(Kint)
     centroides=centroidchosen(edges,centroids(Kint,N),N)
     cycles = Hacerpoligonos(centroides,adj,Frame)
-    return cycles
+    return adj,centroides,cycles
 end
-
 
 function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
     R=zeros(1,length(Sim[1,1,:]))
