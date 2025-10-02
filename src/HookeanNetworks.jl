@@ -1,7 +1,7 @@
 module HookeanNetworks
 using LinearAlgebra,Statistics,GLMakie
 
-export TriangLattice,ForceCalc,CentroMasa,RecordVideo
+export TriangLattice,ForceCalc,CentroMasa,RecordVideo,ReadState,InnerPolygons
 
 function Distancia(v1,v2) #Distancia entre 2 puntos
     return(norm(v2.-v1)) 
@@ -226,7 +226,7 @@ function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},
     return seg,colors
 end
 
-function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Skips::Int64=10,FR::Int64=50)
+function RecordVideo(Sim::Array{Float64,3},Title::String,Skips::Int64=10,FR::Int64=50)
     data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(Sim[1,1,:])]
     pos = Observable(vec(data[1]));
     disp = Observable(Vector{Vec2f}());  # desplazamientos
@@ -238,7 +238,7 @@ function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int
     segments = Observable(Vector{Tuple{Point2f, Point2f}}());
     colors = Observable(Vector{Float32}());
     linesegments!(ax, segments, color=colors,colormap=:vanimo);
-    record(fig, "$(Title).gif", 1:Skips:length(Sim[1,1,:])-1; framerate=FR) do t
+    record(fig, "$(Title).gif", 1:Skips:length(T)-1; framerate=FR) do t
         current= vec(data[t])
         pos[] = current  # actualiza los puntos
         # Calcula desplazamientos respecto a posición inicial
@@ -249,5 +249,145 @@ function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int
         colors[]=cols
     end
 end
+
+
+function angulo(u, v, Frame)
+    dx = Frame[1,v] - Frame[1,u]
+    dy = Frame[2,v] - Frame[2,u]
+    return atan(dy, dx)
+end
+
+function build_adj(edges)
+    adj = Dict{Int, Vector{Int}}()
+    for (u,v) in edges
+        push!(get!(adj, u, Int[]), v)
+        push!(get!(adj, v, Int[]), u)
+    end
+    return adj
+end
+
+function next_vertex(u, v, adj, Frame; maxdist=1.1)
+    ang_uv = angulo(v, u, Frame)
+    neigh = adj[v]
+
+    # Filtrar vecinos por distancia ≤ maxdist
+    valid_neigh = [w for w in neigh if w != u && Distancia(Frame[:,v,1], Frame[:,w,1]) ≤ maxdist]
+
+    if isempty(valid_neigh)
+        return nothing  # no hay siguiente -> camino abierto
+    end
+
+    # Calcular ángulos relativos y ordenar
+    angs = [(w, mod(angulo(v, w, Frame) - ang_uv, 2π)) for w in valid_neigh]
+    sort!(angs, by = x -> x[2])
+    return angs[1][1]  # el más cercano en sentido CCW
+end
+
+
+function cleanonecycl(Frame,list,idt)
+    picture=Frame[:,:,idt]
+    coords=[Point2f.(eachcol(picture[:, poly])) for poly in list]
+    return coords
+end
+
+function next_vertices(c::Int, u::Int, v::Int, adj, Frame; distCent=sqrt(3)+0.1)
+    angcv = mod(angulo(c, v, Frame), 2π)
+    neigh = adj[v]
+    valid_neigh = [w for w in neigh if w != u &&
+        Distancia(Frame[:,c], Frame[:,w]) ≤ distCent]
+
+    if isempty(valid_neigh)
+        return Int[]
+    end
+
+    angs = [(w, mod(angulo(c, w, Frame) - angcv, 2π)) for w in valid_neigh]
+    sort!(angs, by = x -> x[2])
+    return [w for (w, _) in angs]
+end
+
+function VueltaCentr(c::Int, PPaso, adj, Frame; distCent=sqrt(3)+0.1)
+    inicio = PPaso[2]   # primer vértice alrededor del centroide
+
+    function dfs(previo, actual, ciclo)
+        candidatos = next_vertices(c, previo, actual, adj, Frame; distCent=distCent)
+
+        for siguiente in candidatos
+            nuevo_ciclo = [ciclo; siguiente]
+
+            # si cerramos ciclo válido
+            if siguiente == inicio
+                return nuevo_ciclo
+            end
+
+            # evitar ciclos infinitos
+            if length(nuevo_ciclo) > length(keys(adj))
+                continue
+            end
+
+            res = dfs(actual, siguiente, nuevo_ciclo)
+            if !isempty(res)
+                return res
+            end
+        end
+        return Int[]  # todos los caminos fallaron → backtrack
+    end
+
+    return dfs(inicio, inicio, [inicio])
+end
+
+function Hacerpoligonos(Centroides, adj, Frame)
+    cycles = Vector{Vector{Int}}()
+    for Centr in Centroides
+        cycle = VueltaCentr(Centr[1], Centr, adj, Frame)
+        if !isempty(cycle) && cycle[1]== cycle[end]
+            push!(cycles, cycle)
+        end
+    end
+    return cycles
+end
+
+
+function centroids(Kint)
+    useful=zeros(Int,2,length(Kint))
+    [useful[:,i]=[Kint[i][1],Kint[i][2]]  for i in eachindex(Kint)]
+    return setdiff(Int(1):Int(1):Int((N+1)^2),useful) ::Vector{Int}
+end
+
+function centroidchosen(edges,centroids)
+    chosen = Tuple{Int, Int}[]
+    for c in centroids
+        idx = findfirst(t -> c in t && (c+N+1) in t, edges)
+        if !isnothing(idx)
+            t = edges[idx]
+            reordered = t[1] == c ? t : (t[2], t[1])
+            push!(chosen, reordered)
+        end
+    end
+    return chosen
+end
+
+function InnerPolygons(Kint::Vector{Int64}, edges::Vector{Tuple{Int64,Int64}},Frame::Matrix{Float64})
+    adj=build_adj(Kint)
+    centroides=centroidchosen(edges,centroids(Kint))
+    cycles = Hacerpoligonos(centroides,adj,Frame)
+    return cycles
+end
+
+
+function ReadState(Kint::Vector{Int64},Sim::Array{Float64,3},edges::Vector{Tuple{Int64}})
+    R=zeros(1,length(Sim[1,1,:]))
+    N=sqrt(length(Sim[1,:,1]))
+    for i in eachindex(Sim[1,1,:])
+        cycles=InnerPolygons(Kint,edges,Sim[:,:,i])
+        P=zeros(1,length(cycles))
+        for (j,c) in enumerate(cycles)
+            centr=c[1]-N
+            Δϕ=angulo(centr+1-N,centr,Sim[:,:,i])-angulo(centr+1,centr,Sim[:,:,i])
+        end
+        R[i]=mean(P)
+    end
+    return R
+end
+
 
 end # module HookeanNetworks
