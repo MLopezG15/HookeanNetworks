@@ -379,7 +379,7 @@ function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{I
         P=zeros(length(cycles))
         for (j,c) in enumerate(cycles)
             centr=c[1]-N
-            Δϕ=mod(angulo(centr+1-N,centr,Sim[:,:,i])-angulo(centr+1,centr,Sim[:,:,i]),2π)
+            Δϕ=angulo(centr,centr+1-N,Sim[:,:,i])-angulo(centr,centr+1,Sim[:,:,i])
             P[j]=Δϕ
         end
         R[i]=mean(P)
