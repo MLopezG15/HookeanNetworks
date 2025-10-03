@@ -371,72 +371,19 @@ function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Fram
     return cycles
 end
 
-function ReadState_safe(Kint::Vector{Any}, Sim::Array{Float64,3}, edges::Vector{Tuple{Int64,Int64}}; debug::Bool=false)
-    nt = size(Sim, 3)
-    R = Vector{Float64}(undef, nt)
-    M = size(Sim, 2)
-    N = Int(round(sqrt(M)))   # number of grid points per side
-    for t in 1:nt
-        cycles = InnerPolygons(Kint, edges, Sim[:, :, t])
-        if isempty(cycles)
-            if debug; @warn "t=$t: InnerPolygons returned no cycles"; end
-            R[t] = NaN
-            continue
+function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
+    R=zeros(length(Sim[1,1,:]))
+    N=Int64(sqrt(length(Sim[1,:,1])))
+    for i in eachindex(Sim[1,1,:])
+        cycles=InnerPolygons(Kint,edges,Sim[:,:,1])
+        P=zeros(length(cycles))
+        for (j,c) in enumerate(cycles)
+            centr=c[1]-N
+            Δϕ=angulo(centr,centr+1-N,Sim[:,:,i])-angulo(centr,centr+1,Sim[:,:,i])
+            P[j]=Δϕ
         end
-        vals = Float64[]
-        for (j, c) in enumerate(cycles)
-            centr = c[1] - N
-            v1 = centr + 1 - N
-            v2 = centr + 1
-            # bounds check
-            if any(x -> x < 1 || x > M, (centr, v1, v2))
-                if debug
-                    @warn "t=$t cycle=$j: index OOB centr=$centr v1=$v1 v2=$v2 cycle=$c"
-                end
-                continue
-            end
-            # extract coordinates
-            pcent = Sim[:, centr, t]
-            p1    = Sim[:, v1,   t]
-            p2    = Sim[:, v2,   t]
-            # finite check
-            if !(all(isfinite, pcent) && all(isfinite, p1) && all(isfinite, p2))
-                if debug
-                    @warn "t=$t cycle=$j: non-finite coordinates pcent=$pcent p1=$p1 p2=$p2"
-                end
-                continue
-            end
-            # avoid degenerate zero-length vectors (identical points)
-            eps_dist = 1e-12
-            if (hypot(pcent[1]-p1[1], pcent[2]-p1[2]) < eps_dist) ||
-               (hypot(pcent[1]-p2[1], pcent[2]-p2[2]) < eps_dist)
-                if debug
-                    @warn "t=$t cycle=$j: degenerate pair (zero distance) pcent=$pcent p1=$p1 p2=$p2"
-                end
-                continue
-            end
-            # compute angles using your angulo signature
-            a1 = angulo(centr, v1, Sim[:, :, t])
-            a2 = angulo(centr, v2, Sim[:, :, t])
-            if !isfinite(a1) || !isfinite(a2)
-                if debug
-                    @warn "t=$t cycle=$j: angulo returned non-finite a1=$a1 a2=$a2"
-                end
-                continue
-            end
-            Δϕ = a1 - a2
-            # normalize to principal value in (-π, π]
-            Δϕ = atan(sin(Δϕ), cos(Δϕ))
-            push!(vals, Δϕ)
-        end
-        if isempty(vals)
-            if debug; @warn "t=$t: no valid Δϕ values"; end
-            R[t] = NaN
-        else
-            R[t] = mean(vals)
-        end
+        R[i]=mean(P)
     end
-
     return R
 end
 
