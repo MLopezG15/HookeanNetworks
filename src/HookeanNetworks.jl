@@ -372,15 +372,15 @@ function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Fram
 end
 
 function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
-    R=zeros(1,length(Sim[1,1,:]))
+    R=zeros(length(Sim[1,1,:]))
     N=Int64(sqrt(length(Sim[1,:,1])))
     for i in eachindex(Sim[1,1,:])
         cycles=InnerPolygons(Kint,edges,Sim[:,:,i])
-        P=zeros(1,length(cycles))
+        P=zeros(length(cycles))
         for (j,c) in enumerate(cycles)
             centr=c[1]-N
-            Δϕ=angulo(centr+1-N,centr,Sim[:,:,i])-angulo(centr+1,centr,Sim[:,:,i])
-            P[1,j]=Δϕ
+            Δϕ=mod(angulo(centr+1-N,centr,Sim[:,:,i])-angulo(centr+1,centr,Sim[:,:,i]),2π)
+            P[j]=Δϕ
         end
         R[i]=mean(P)
     end
