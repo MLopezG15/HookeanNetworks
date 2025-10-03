@@ -368,7 +368,7 @@ function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Fram
     adj=build_adj(Kint)
     centroides=centroidchosen(edges,centroids(Kint,N),N)
     cycles = Hacerpoligonos(centroides,adj,Frame)
-    return adj,centroides,cycles
+    return cycles
 end
 
 function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
