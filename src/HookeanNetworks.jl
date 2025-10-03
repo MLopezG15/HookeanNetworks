@@ -387,5 +387,21 @@ function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{I
     return R
 end
 
+function CalcEnergies(edges::Vector{Tuple{Float64,Float64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0)
+    K=0.5*m*sum(VFrame[1,:].^2 +VFrame[2,:].^2)
+    U=0
+    for edge in edges
+        dist=Distancia(Frame[:,edge[1]],Frame[:,edge[2]])
+        Δr = dist - r0
+        Epot+= 0.5 * Kvec[i] * Δr^2
+        if WCA || dist< 2^(1/6) * σ
+            Epot+= (4ε*((σ/dist)^12 - (σ/dist)^6 )+ε)
+        end
+    end
+    return K,U
+end
+
+
+
 
 end # module HookeanNetworks
