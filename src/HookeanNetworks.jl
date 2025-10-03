@@ -226,7 +226,7 @@ function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},
     return seg,colors
 end
 
-function RecordVideo(Sim::Array{Float64,3},Title::String,edges,Kvec,Skips::Int64=10,FR::Int64=50)
+function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Skips::Int64=10,FR::Int64=50)
     data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(Sim[1,1,:])]
     pos = Observable(vec(data[1]));
     disp = Observable(Vector{Vec2f}());  # desplazamientos
@@ -238,7 +238,7 @@ function RecordVideo(Sim::Array{Float64,3},Title::String,edges,Kvec,Skips::Int64
     segments = Observable(Vector{Tuple{Point2f, Point2f}}());
     colors = Observable(Vector{Float32}());
     linesegments!(ax, segments, color=colors,colormap=:vanimo);
-    record(fig, "$(Title).gif", 1:Skips:length(T)-1; framerate=FR) do t
+    record(fig, "$(Title).gif", 1:Skips:length(Sim[1,1,:])-1; framerate=FR) do t
         current= vec(data[t])
         pos[] = current  # actualiza los puntos
         # Calcula desplazamientos respecto a posición inicial
