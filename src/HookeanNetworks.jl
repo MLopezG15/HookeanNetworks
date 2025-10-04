@@ -392,9 +392,9 @@ function CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Fr
     for edge in edges
         dist=Distancia(Frame[:,edge[1]],Frame[:,edge[2]])
         Δr = dist - r0
-        Epot+= 0.5 * Kvec[i] * Δr^2
+        U+= 0.5 * Kvec[i] * Δr^2
         if WCA || dist< 2^(1/6) * σ
-            Epot+= (4ε*((σ/dist)^12 - (σ/dist)^6 )+ε)
+            U+= (4ε*((σ/dist)^12 - (σ/dist)^6 )+ε)
         end
     end
     return K,U
