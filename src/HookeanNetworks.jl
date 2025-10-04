@@ -181,7 +181,6 @@ end
 function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Vel::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;m::Float64=1.0,Damp::Bool=true,WCA::Bool=true,GaussPulse::Bool=true,r0::Float64=1.0,γ::Float64=0.2,σF::Float64=0.5,t0::Float64=3.0,A::Float64=1.0,M::Int64=1,ε::Float64=0.1, σ::Float64=0.35,GaussCutOff::Float64=10.0,Thermostat::Bool=true,β=1.0)
     F=zeros(size(vertices))
     r1=[];r2=[];
-    #CCM=UnCentroMasa(vertices)
     for i in eachindex(edges)
         p1=edges[i][1]
         p2=edges[i][2]
@@ -387,7 +386,7 @@ function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{I
     return R
 end
 
-function CalcEnergies(edges::Vector{Tuple{Float64,Float64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0)
+function CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0)
     K=0.5*m*sum(VFrame[1,:].^2 +VFrame[2,:].^2)
     U=0
     for edge in edges
@@ -400,8 +399,5 @@ function CalcEnergies(edges::Vector{Tuple{Float64,Float64}},Kvec::Matrix{Float64
     end
     return K,U
 end
-
-
-
 
 end # module HookeanNetworks
