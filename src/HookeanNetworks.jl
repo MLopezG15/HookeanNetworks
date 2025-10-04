@@ -389,7 +389,7 @@ end
 function CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0)
     K=0.5*m*sum(VFrame[1,:].^2 +VFrame[2,:].^2)
     U=0
-    for edge in edges
+    for (i,edge) in enumerate(edges)
         dist=Distancia(Frame[:,edge[1]],Frame[:,edge[2]])
         Δr = dist - r0
         U+= 0.5 * Kvec[i] * Δr^2
