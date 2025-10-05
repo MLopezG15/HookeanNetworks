@@ -1,5 +1,5 @@
 # HookeanNetworks -Paquete para construcción y simulación de redes elasticas
-Actualmente consta de las principales funciones: [TriangLattice](#TriangLattice), [ForceCalc](#ForceCalc), [CentroMasa](#CentroMasa), [RecordVideo](#RecordVideo), [InnerPolygons](#InnerPolygons), [ReadState](#ReadState), y [CalcEnergies](#CalcEnergies)
+Actualmente consta de las principales funciones: [TriangLattice](#TriangLattice), [ForceCalc](#ForceCalc), [CentroMasa](#CentroMasa), [RecordVideo](#RecordVideo), [InnerPolygons](#InnerPolygons), [ReadState](#ReadState), [CalcEnergies](#CalcEnergies), [RecordVideoWithPolygons](#RecordVideoWithPolygons)
 
 ## TriangLattice
 `TriangLattice` es la función que permite obtener un arreglo de enlaces y vertices en un lattice triangular
@@ -120,6 +120,8 @@ ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int6
 ```julia
 CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},WCA::Bool=true,r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0) -> Float64, Float64
 ```
+
+## RecordVideoWithPolygons
 
 
 
