@@ -1,5 +1,5 @@
 module HookeanNetworks
-using LinearAlgebra,Statistics,GLMakie
+using LinearAlgebra,Statistics,GLMakie,GeometryBasics
 
 export TriangLattice,ForceCalc,CentroMasa,RecordVideo,ReadState,InnerPolygons,CalcEnergies,RecordVideoWithPolygons
 
