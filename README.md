@@ -19,7 +19,7 @@ Actualmente consta de las principales funciones: [TriangLattice](#TriangLattice)
 TriangLattice(N::Int64; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0)
 ```
 
-## ForceCalc – Cálculo de Fuerzas en Redes de Partículas
+## ForceCalc
 
 `ForceCalc` es una función en Julia para calcular las **fuerzas resultantes** en una red de partículas 2D conectadas por enlaces.  
 Incluye interacciones elásticas, amortiguamiento viscoso, repulsión de tipo Weeks–Chandler–Andersen (WCA) y un pulso externo Gaussiano opcional.
@@ -57,7 +57,7 @@ ForceCalc(
     A::Float64=6.0,M::Int64=1,ε::Float64=0.1,σ::Float64=0.35, GaussCutOff::Float64=10.0,Thermostat::Bool=true,β=1.0) -> Matrix{Float64}
 ```
 
-## CentroMasa - Cálculo de Centro de masa
+## CentroMasa
 
 `CentroMasa`es una función que calcula y devuelve la posición del centro de masa del sistema para un instante de tiempo
 
@@ -69,7 +69,7 @@ ForceCalc(
 CentroMasa(Frame::Matrix{Float64})-> Vector{Float64}
 ```
 
-## RecordVideo - Grabar simulación de evolución temporal
+## RecordVideo
 `RecordVideo` es una función que automáticamente graba en un archivo `.gif` la dinámica de la red. 
 
 ### Argumentos
