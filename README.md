@@ -1,5 +1,5 @@
 # HookeanNetworks -Paquete para construcción y simulación de redes elasticas
-Actualmente consta de las principales funciones: [TriangLattice](#TriangLattice), y ForceCalc, CentroMasa, RecordVideo, InnerPolygons, ReadState
+Actualmente consta de las principales funciones: [TriangLattice](#TriangLattice), [ForceCalc](#ForceCalc), [CentroMasa](#CentroMasa), [RecordVideo](#RecordVideo), [InnerPolygons](#InnerPolygons), [ReadState](#ReadState)
 
 ## TriangLattice
 `TriangLattice` es la función que permite obtener un arreglo de enlaces y vertices en un lattice triangular
