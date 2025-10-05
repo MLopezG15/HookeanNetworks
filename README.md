@@ -1,5 +1,5 @@
 # HookeanNetworks -Paquete para construcción y simulación de redes elasticas
-Actualmente consta de las principales funciones: [TriangLattice](#TriangLattice), [ForceCalc](#ForceCalc), [CentroMasa](#CentroMasa), [RecordVideo](#RecordVideo), [InnerPolygons](#InnerPolygons), [ReadState](#ReadState)
+Actualmente consta de las principales funciones: [TriangLattice](#TriangLattice), [ForceCalc](#ForceCalc), [CentroMasa](#CentroMasa), [RecordVideo](#RecordVideo), [InnerPolygons](#InnerPolygons), [ReadState](#ReadState), y [CalcEnergies](#CalcEnergies)
 
 ## TriangLattice
 `TriangLattice` es la función que permite obtener un arreglo de enlaces y vertices en un lattice triangular
@@ -81,23 +81,45 @@ CentroMasa(Frame::Matrix{Float64})-> Vector{Float64}
 `FR::Int64` FrameRate de la simulación. 
 
 ## InnerPolygons
+`InnerPolygons` obtiene las trayectorias cerradas formadas por los enlaces internos de la red.
 ### Argumentos
-### Keywords Opcionales
+- `Kint::Vector{Any}`
+-  `edges::Vector{Tuple{Int64,Int64}}`
+-  `Frame::Matrix{Float64}`
+
 ### Uso
+```julia
+InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Frame::Matrix{Float64})-> Vector{Vector{Float64}}
+```
 
 ## ReadState
-
+`ReadState` obtiene a lo largo del tiempo el ángulo de apertura de los modos suaves.
 ### Argumentos
-### Keywords Opcionales
+- `Kint::Vector{Any}`
+- `Sim::Array{Float64,3}`
+- `edges::Vector{Tuple{Int64,Int64}}`
 ### Uso
-
+```julia
+ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})-> 
+```
 
 ## CalcEnergies
-
+`CalcEnergies` calcula por separado la energía cinética y energía potencial para un instante de tiempo.
 ### Argumentos
+- `edges::Vector{Tuple{Int64,Int64}}`
+- `Kvec::Matrix{Float64}`
+- `Frame::Matrix{Float64}`
+- `VFrame::Matrix{Float64}`
 ### Keywords Opcionales
+- `WCA::Bool=true`
+- `r0::Float64=1.0`
+- `ε::Float64=0.1`
+- `σ::Float64=0.35`
+- `m::Float64=1.0`
 ### Uso
-
+```julia
+CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},WCA::Bool=true,r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0) -> Float64, Float64
+```
 
 
 
