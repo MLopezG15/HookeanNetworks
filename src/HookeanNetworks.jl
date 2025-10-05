@@ -1,7 +1,7 @@
 module HookeanNetworks
 using LinearAlgebra,Statistics,GLMakie
 
-export TriangLattice,ForceCalc,CentroMasa,RecordVideo,ReadState,InnerPolygons,CalcEnergies
+export TriangLattice,ForceCalc,CentroMasa,RecordVideo,ReadState,InnerPolygons,CalcEnergies,RecordVideoWithPolygons
 
 function Distancia(v1,v2) #Distancia entre 2 puntos
     return(norm(v2.-v1)) 
@@ -225,7 +225,7 @@ function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},
     return seg,colors
 end
 
-function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Skips::Int64=10,FR::Int64=50)
+function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64};Skips::Int64=10,FR::Int64=50)
     data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(Sim[1,1,:])]
     pos = Observable(vec(data[1]));
     disp = Observable(Vector{Vec2f}());  # desplazamientos
@@ -396,6 +396,56 @@ function CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Fr
         end
     end
     return K,U
+end
+
+function RecordVideoWithPolygons(
+    Sim::Array{Float64,3},
+    Title::String,
+    edges::Vector{Tuple{Int,Int}},
+    Kvec::Matrix{Float64},
+    poly_vertices::Vector{Vector{Int}},
+    poly_colors::AbstractMatrix;
+    cmap=:vanimo,
+    poly_cmap=:plasma,      
+    poly_alpha=0.5,         
+    Skips::Int=10,
+    FR::Int=50
+)
+    T = size(Sim,3)
+    data = [Point2f.(Sim[1,:,t], Sim[2,:,t]) for t in 1:T]
+
+    pos   = Observable(vec(data[1]))
+    segs  = Observable(Vector{Tuple{Point2f,Point2f}}())
+    cols  = Observable(Vector{Float32}())
+    polys = Observable(Vector{GeometryBasics.Polygon}())
+    pcols = Observable(Vector{RGBAf}())
+
+    fig = Figure()
+    ax = Axis(fig[1,1])
+    scatter!(ax, pos; color=:black, markersize=6)
+    hidedecorations!(ax, ticks=false)
+
+
+    polyplot = poly!(ax, polys; color=pcols)
+    lineplot = linesegments!(ax, segs; color=cols, colormap=cmap)
+
+    record(fig, "$(Title).gif", 1:Skips:T-1; framerate=FR) do t
+        pos[]   = vec(data[t])
+        segs[], cols[] = build_segments(pos[], edges, Kvec[:,2])
+
+        # update polygons
+        polys[] = [Polygon(Point2f.(Sim[1,p,t], Sim[2,p,t])) for p in poly_vertices]
+
+        Ct = poly_colors[:,t]
+        if eltype(Ct) <: Real
+            grad = cgrad(poly_cmap)
+            nCt = (Ct .- minimum(Ct)) ./ (maximum(Ct)-minimum(Ct) + eps())
+            pcols[] = [RGBAf(get(grad, x).r, get(grad, x).g, get(grad, x).b, poly_alpha) for x in nCt]
+        else
+            # assume already colors
+            pcols[] = [RGBAf(c.r, c.g, c.b, poly_alpha) for c in Ct]
+        end
+    end
 end
 
 end # module HookeanNetworks
