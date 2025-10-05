@@ -119,7 +119,8 @@ ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int6
 - `m::Float64=1.0` Masa de los vertices del sistema.
 ### Uso
 ```julia
-CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},WCA::Bool=true,r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0) -> Float64, Float64
+CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},
+WCA::Bool=true,r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0) -> Float64, Float64
 ```
 
 ## RecordVideoWithPolygons
@@ -142,7 +143,9 @@ CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matr
 
 ### Uso
 ```julia
-RecordVideoWithPolygons(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int,Int}},Kvec::Matrix{Float64},poly_vertices::Vector{Vector{Int}},    poly_colors::AbstractMatrix;cmap=:vanimo,poly_cmap=:plasma,poly_alpha=0.5,Skips::Int=10,FR::Int=50)
+RecordVideoWithPolygons(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int,Int}},
+Kvec::Matrix{Float64},poly_vertices::Vector{Vector{Int}},poly_colors::AbstractMatrix;
+cmap=:vanimo,poly_cmap=:plasma,poly_alpha=0.5,Skips::Int=10,FR::Int=50)
 ```
 
 
