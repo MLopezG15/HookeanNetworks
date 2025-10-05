@@ -439,7 +439,7 @@ function RecordVideoWithPolygons(
         Ct = poly_colors[:,t]
         if eltype(Ct) <: Real
             grad = cgrad(poly_cmap)
-            nCt = (Ct ) -minimum(Ct)./ (maximum(Ct)-minimum(Ct))
+            nCt = (Ct ) .-minimum(Ct)./ (maximum(Ct)-minimum(Ct))
             pcols[] = [RGBAf(get(grad, x).r, get(grad, x).g, get(grad, x).b, poly_alpha) for x in nCt]
         else
             # assume already colors
