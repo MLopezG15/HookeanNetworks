@@ -440,7 +440,11 @@ function RecordVideoWithPolygons(
         if eltype(Ct) <: Real
             grad = cgrad(poly_cmap)
             nCt = (Ct .-minimum(Ct) )./ (maximum(Ct)-minimum(Ct))
-            pcols[] = [RGBAf(get(grad, x).r, get(grad, x).g, get(grad, x).b, poly_alpha) for x in nCt]
+            pcols[] = [
+                let col = get(grad, x)
+                    RGBA{Float32}(Float32(col.r), Float32(col.g), Float32(col.b), Float32(poly_alpha))
+                end for x in nCt
+            ]
         else
             # assume already colors
             pcols[] = [RGBAf(c.r, c.g, c.b, poly_alpha) for c in Ct]
