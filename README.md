@@ -1,5 +1,5 @@
 # HookeanNetworks -Paquete para construcción y simulación de redes elasticas
-Actualmente consta de las principales funciones: TriangLattice, y ForceCalc, CentroMasa, RecordVideo, InnerPolygons, ReadState
+Actualmente consta de las principales funciones: [TriangLattice](#TriangLattice), y ForceCalc, CentroMasa, RecordVideo, InnerPolygons, ReadState
 
 ## TriangLattice
 `TriangLattice` es la función que permite obtener un arreglo de enlaces y vertices en un lattice triangular
@@ -44,7 +44,9 @@ Incluye interacciones elásticas, amortiguamiento viscoso, repulsión de tipo We
 - `σF::Float64=0.5` Ancho del pulso gaussiano
 - `t0::Float64=3.0` Desplazamiento del pulso gaussiano
 - `A::Float64=1.0` Amplitud del pulso gaussiano
-- `GaussCutOff::Float64=10.0` Tiempo máximo en el que se aplica el pulso gaussiano 
+- `GaussCutOff::Float64=10.0` Tiempo máximo en el que se aplica el pulso gaussiano
+- `Thermostat::Bool=true` Activa el termostáto de Langevin
+- `β` Temperatura reducida
 
 ### Uso
 
@@ -52,7 +54,7 @@ Incluye interacciones elásticas, amortiguamiento viscoso, repulsión de tipo We
 ForceCalc(
     edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Vel::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;
     Damp::Bool=false,WCA::Bool=false,GaussPulse::Bool=true,r0::Float64=1.0,γ::Float64=0.2,σF::Float64=0.5,t0::Float64=3.0,
-    A::Float64=6.0,M::Int64=1,ε::Float64=0.1,σ::Float64=0.35,    GaussCutOff::Float64=10.0) -> Matrix{Float64}
+    A::Float64=6.0,M::Int64=1,ε::Float64=0.1,σ::Float64=0.35, GaussCutOff::Float64=10.0,Thermostat::Bool=true,β=1.0) -> Matrix{Float64}
 ```
 
 ## CentroMasa - Cálculo de Centro de masa
@@ -78,7 +80,23 @@ CentroMasa(Frame::Matrix{Float64})-> Vector{Float64}
 `Skips::Int64` especialmente útil para simulaciones largas, intervalos de tiempo sobre los que se grafican.
 `FR::Int64` FrameRate de la simulación. 
 
+## InnerPolygons
+### Argumentos
+### Keywords Opcionales
+### Uso
 
+## ReadState
+
+### Argumentos
+### Keywords Opcionales
+### Uso
+
+
+## CalcEnergies
+
+### Argumentos
+### Keywords Opcionales
+### Uso
 
 
 
