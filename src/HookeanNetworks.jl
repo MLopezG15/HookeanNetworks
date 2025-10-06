@@ -372,13 +372,16 @@ end
 
 function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
     cycles=InnerPolygons(Kint,edges,Sim[:,:,1])
+    adjt=build_adj(edges)
     R=zeros(length(cycles),length(Sim[1,1,:]))
     N=Int64(sqrt(length(Sim[1,:,1])))
     for i in eachindex(Sim[1,1,:])
         for (j,c) in enumerate(cycles)
-            centr=c[1]-N
-            Δϕ=angulo(centr,centr+1-N,Sim[:,:,i])-angulo(centr,centr+1,Sim[:,:,i])
-            R[j,i]=Δϕ
+            vecinos=adjt[Int64(c[1]-N)]
+            direc=[sum(Sim[1,vecinos,i]),sum(Sim[2,vecinos,i])]
+            #Δϕ=angulo(centr,centr+1-N,Sim[:,:,i])-angulo(centr,centr+1,Sim[:,:,i])
+            state=sign(atan(direc[2],direc[1]))            
+            R[j,i]=state
         end
     end
     return R
