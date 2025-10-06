@@ -378,7 +378,7 @@ function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{I
     for i in eachindex(Sim[1,1,:])
         for (j,c) in enumerate(cycles)
             vecinos=adjt[Int64(c[1]-N)]
-            direc=[sum(Sim[1,vecinos,i]),sum(Sim[2,vecinos,i])].-Sim[:,c[1]-N,i]
+            direc=[sum(Sim[1,vecinos,i])-Sim[1,c[1]-N,i],sum(Sim[2,vecinos,i])-Sim[2,c[1]-N,i]].
             #Δϕ=angulo(centr,centr+1-N,Sim[:,:,i])-angulo(centr,centr+1,Sim[:,:,i])
             state=atan(direc[2],direc[1])            
             R[j,i]=state
