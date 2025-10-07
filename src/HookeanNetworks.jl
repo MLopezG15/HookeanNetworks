@@ -99,24 +99,45 @@ function CortEnlOrd(edges, vertices,η,ζ,k_normal; k_cut=0.0, )
     interior= Set{Tuple{Int,Int}}()
     for v0 in 0:2:(N-3), u0 in 1:2:(N-2)
         # dos triángulos por super-super celda
-        blue = [
-            (idx(u0+1,v0),   idx(u0+1,v0+1)),
-            (idx(u0+1,v0),   idx(u0,  v0+1)),
-            (idx(u0,  v0+1), idx(u0+1,v0+1))
-        ]
-        red = [
-            (idx(u0+1,v0+1), idx(u0+1,v0+2)),
-            (idx(u0+2,v0+1), idx(u0+1,v0+2)),
-            (idx(u0+1,v0+1), idx(u0+2,v0+1))
-        ]
+        if (η==3 && ζ==2) ||  (η==2 && ζ==3)
+            blue = [ 
+            (idx(u0+1,v0), idx(u0+1,v0+1)), 
+            (idx(u0, v0+1), idx(u0+1,v0+1)), 
+            (idx(u0+1,v0), idx(u0, v0+1)) 
+            ] 
+        red = [ 
+            (idx(u0+1,v0+1), idx(u0+1,v0+2)), 
+            (idx(u0+2,v0+1), idx(u0+1,v0+2)), 
+            (idx(u0+1,v0+1), idx(u0+2,v0+1)) 
+            ] 
+        else
+            blue = [
+                (idx(u0+1,v0),   idx(u0+1,v0+1)),
+                (idx(u0+1,v0),   idx(u0,  v0+1)),
+                (idx(u0,  v0+1), idx(u0+1,v0+1))
+            ]
+            red = [
+                (idx(u0+1,v0+1), idx(u0+1,v0+2)),
+                (idx(u0+2,v0+1), idx(u0+1,v0+2)),
+                (idx(u0+1,v0+1), idx(u0+2,v0+1))
+            ]
+        end
         # elegir 1 enlace al azar de cada triángulo
         for tri in (blue, red)
             for i in tri 
                 c,d=i
                 push!(interior,(c,d))
             end
-            a=tri[1][η] # [#Enlace, Triangulo a cortar] 
-            b = tri[2][ζ]
+            if (η==3 && ζ==2)
+                a=tri[η-1][1] # [#Enlace, Triangulo a cortar] 
+                b = tri[ζ][2]
+            elseif (η==2 && ζ==3)
+                a=tri[η+1][1]
+                b=tri[ζ][2]
+            else
+                a=tri[η][1] # [#Enlace, Triangulo a cortar] 
+                b = tri[ζ][2]
+            end
             a>b && ((a,b)=(b,a))
             push!(targets, (a,b))
         end
