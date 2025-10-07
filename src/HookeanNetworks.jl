@@ -115,8 +115,8 @@ function CortEnlOrd(edges, vertices,η,ζ,k_normal; k_cut=0.0, )
                 c,d=i
                 push!(interior,(c,d))
             end
-            a=tri[η][1] # [#Enlace, Triangulo a cortar] 
-            b = tri[ζ][2]
+            a=tri[1][η] # [#Enlace, Triangulo a cortar] 
+            b = tri[2][ζ]
             a>b && ((a,b)=(b,a))
             push!(targets, (a,b))
         end
