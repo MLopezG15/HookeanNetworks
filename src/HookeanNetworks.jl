@@ -233,7 +233,7 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
         F.-=fuer_damp 
     end
     if Thermostat
-        κ=sqrt(2*m*γ/β)
+        κ=sqrt(2*γ/β)
         F_Lang=κ*randn(size(F))
         F.+=F_Lang
     end
