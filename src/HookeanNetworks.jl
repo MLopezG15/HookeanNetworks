@@ -199,7 +199,7 @@ function wca_force(r,ε, σ)
     end
 end
 
-function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Vel::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;m::Float64=1.0,Damp::Bool=true,WCA::Bool=true,GaussPulse::Bool=true,r0::Float64=1.0,γ::Float64=0.2,σF::Float64=0.5,t0::Float64=3.0,A::Float64=1.0,M::Int64=1,ε::Float64=0.1, σ::Float64=0.35,GaussCutOff::Float64=10.0,Thermostat::Bool=true,β=1.0)
+function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;WCA::Bool=true,GaussPulse::Bool=true,r0::Float64=1.0,σF::Float64=0.5,t0::Float64=3.0,A::Float64=1.0,M::Int64=1,ε::Float64=0.1, σ::Float64=0.35,GaussCutOff::Float64=10.0)
     F=zeros(size(vertices))
     r1=[];r2=[];
     for i in eachindex(edges)
@@ -228,6 +228,7 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
         F_img[:,M]=DirCm.*A*exp(-((t-t0)^2)/(2*σF)^2) *(t<GaussCutOff)
         F.+=F_img
     end
+    #=
     if Damp
         fuer_damp= γ.*Vel
         F.-=fuer_damp 
@@ -237,8 +238,22 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V
         F_Lang=κ*randn(size(F))
         F.+=F_Lang
     end
+    =#
     return F
 end
+
+function VerletViscous(edges,vertices,V,dt,Kvec,t;m::Float64=1.0,γ::Float64=0.2,β=1.0,kwargs...)
+    α=1+((γ*dt)/2*m)
+    λ=1-((γ*dt)/2*m)
+    g=sqrt(2*dt*γ/β)
+    F=zeros(size(vertices))
+    ζ=g.*randn(size(F))
+    vertices.=vertices.+(dt/α).*(V.+((1/(2*m))).*(ForceCalc(edges,vertices,Kvec,t,kwargs...).*dt.+ζ))
+    Fnew=ForceCalc(edges,vertices,Kvec,t+dt,kwargs...)
+    V.=(V.+((dt/2*m)*ForceCalc(edges,vertices,Kvec,t,kwargs...))).*((λ/α).+(dt/(2*m)).*Fnew).+(g*β/m).*ζ
+    return vertices,V
+end
+
 
 function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},values)
     seg = [(points[p1], points[p2]) for (p1, p2) in edges]
