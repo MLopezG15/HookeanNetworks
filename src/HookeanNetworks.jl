@@ -1,7 +1,7 @@
 module HookeanNetworks
 using LinearAlgebra,Statistics,GLMakie,GeometryBasics,ColorTypes
 
-export TriangLattice,ForceCalc,CentroMasa,RecordVideo,ReadState,InnerPolygons,CalcEnergies,RecordVideoWithPolygons
+export TriangLattice,ForceCalc,CentroMasa,RecordVideo,ReadState,InnerPolygons,CalcEnergies,RecordVideoWithPolygons,VerletViscous
 
 function Distancia(v1,v2) #Distancia entre 2 puntos
     return(norm(v2.-v1)) 
