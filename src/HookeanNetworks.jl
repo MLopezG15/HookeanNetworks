@@ -247,9 +247,9 @@ function VerletViscous(edges,vertices,V,dt,Kvec,t;m::Float64=1.0,γ::Float64=0.2
     λ=1-((γ*dt)/2*m)
     g=sqrt(2*dt*γ/β)
     ζ=g.*randn(size(vertices))
-    vertices=vertices.+(dt/α).*(V.+((1/(2*m))).*(ForceCalc(edges,vertices,Kvec,t,kwargs...).*dt.+ζ))
+    vertices.=vertices.+(dt/α).*(V.+((1/(2*m))).*(ForceCalc(edges,vertices,Kvec,t,kwargs...).*dt.+ζ))
     Fnew=ForceCalc(edges,vertices,Kvec,t+dt,kwargs...)
-    V=(V.+((dt/2*m)*ForceCalc(edges,vertices,Kvec,t,kwargs...))).*((λ/α).+(dt/(2*m)).*Fnew).+(g*β/m).*ζ
+    V.=(V.+((dt/2*m)*ForceCalc(edges,vertices,Kvec,t,kwargs...))).*((λ/α).+(dt/(2*m)).*Fnew).+(g*β/m).*ζ
     return vertices,V
 end
 
