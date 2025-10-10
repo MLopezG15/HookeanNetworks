@@ -242,14 +242,14 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},K
     return F
 end
 
-function VerletViscous(edges,vertices,V,dt,Kvec,t;m::Float64=1.0,γ::Float64=0.2,β=1.0,kwargs...)
+function VerletViscous(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V::Matrix{Float64},dt::Float64,Kvec::Matrix{Float64},t::Float64;m::Float64=1.0,γ::Float64=0.2,β=1.0,kwargs...)
     α=1+((γ*dt)/2*m)
     λ=1-((γ*dt)/2*m)
     g=sqrt(2*dt*γ/β)
     ζ=g.*randn(size(vertices))
     vertices.=vertices.+(dt/α).*(V.+((1/(2*m))).*(ForceCalc(edges,vertices,Kvec,t,kwargs...).*dt.+ζ))
     Fnew=ForceCalc(edges,vertices,Kvec,t+dt,kwargs...)
-    V.=(V.+((dt/2*m)*ForceCalc(edges,vertices,Kvec,t,kwargs...))).*((λ/α).+(dt/(2*m)).*Fnew).+(g*β/m).*ζ
+    V.=(V.+((dt/2*m)*ForceCalc(edges,vertices,Kvec,t,kwargs...))).*((λ/α).+(dt/(2*m)).*Fnew).+(g*λ/m).*ζ
     return vertices,V
 end
 
