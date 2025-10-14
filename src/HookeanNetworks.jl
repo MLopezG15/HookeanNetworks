@@ -46,7 +46,7 @@ end
 
 function CortEnlRand(edges, vertices,k_normal; k_cut=0.0 )
     num_v = size(vertices, 2)
-    N = Int(round(sqrt(num_v)))
+    (N,_)=ObtenerLados(vertices,edges)
     idx(u,v) = u + v*N
     targets = Set{Tuple{Int,Int}}()
     interior= Set{Tuple{Int,Int}}()
@@ -93,7 +93,7 @@ end
 
 function CortEnlOrd(edges, vertices,η,ζ,k_normal; k_cut=0.0, )
     num_v = size(vertices, 2)
-    N = Int(round(sqrt(num_v)))
+    (N,_)=ObtenerLados(vertices,edges)
     idx(u,v) = u + v*N
     targets = Set{Tuple{Int,Int}}()
     interior= Set{Tuple{Int,Int}}()
@@ -228,17 +228,6 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},K
         F_img[:,M]=DirCm.*A*exp(-((t-t0)^2)/(2*σF)^2) *(t<GaussCutOff)
         F.+=F_img
     end
-    #=
-    if Damp
-        fuer_damp= γ.*Vel
-        F.-=fuer_damp 
-    end
-    if Thermostat
-        κ=sqrt(2*γ/β)
-        F_Lang=κ*randn(size(F))
-        F.+=F_Lang
-    end
-    =#
     return F
 end
 
@@ -378,10 +367,10 @@ function Hacerpoligonos(Centroides, adj, Frame)
     return cycles
 end
 
-function centroids(Kint,N)
+function centroids(Kint,N,M)
     useful=zeros(Int64,2,length(Kint))
     [useful[:,i]=[Kint[i][1],Kint[i][2]]  for i in eachindex(Kint)]
-    return setdiff(Int64(1):Int64(1):Int64((N)^2),useful) ::Vector{Int}
+    return setdiff(Int64(1):Int64(1):Int64((N*M)),useful) ::Vector{Int}
 end
 
 function centroidchosen(edges,centroids,N)
@@ -397,10 +386,18 @@ function centroidchosen(edges,centroids,N)
     return chosen
 end
 
+function ObtenerLados(vertices,edges)
+    adj=build_adj(edges)
+    N=Int64(adj[1][2]-1)
+    M=Int64(size(vertices,2)/N)
+    return (N,M)
+end
+
+
 function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Frame::Matrix{Float64})
-    N=Int64(sqrt(length(Frame[1,:])))
+    (N,M)=ObtenerLados(Frame,edges)
     adj=build_adj(Kint)
-    centroides=centroidchosen(edges,centroids(Kint,N),N)
+    centroides=centroidchosen(edges,centroids(Kint,N,M),N)
     cycles = Hacerpoligonos(centroides,adj,Frame)
     return cycles
 end
@@ -409,7 +406,7 @@ function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{I
     cycles=InnerPolygons(Kint,edges,Sim[:,:,1])
     adjt=build_adj(edges)
     R=zeros(length(cycles),length(Sim[1,1,:]))
-    N=Int64(sqrt(length(Sim[1,:,1])))
+    (N,_)=ObtenerLados(Sim[:,:,1],edges)
     for i in eachindex(Sim[1,1,:])
         for (j,c) in enumerate(cycles)
             vecinos=adjt[Int64(c[1]-N)]
