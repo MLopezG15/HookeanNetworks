@@ -249,18 +249,19 @@ function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},
     return seg,colors
 end
 
-function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64};Skips::Int64=10,FR::Int64=50)
+function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64};Skips::Int64=10,FR::Int64=50,lwidth::Float64=1.0,pad::Float64=0.07)
     data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(Sim[1,1,:])]
     pos = Observable(vec(data[1]));
     disp = Observable(Vector{Vec2f}());  # desplazamientos
     initial = vec(data[1]);  # guarda las posiciones iniciales
     fig = Figure()
     ax = Axis(fig[1, 1],aspect = 1)
+    equal_axes!(ax,Sim[1,:,1],Sim[2,:,1],pad=pad)
     scatter!(pos)
     hidedecorations!(ax,ticks=false)
     segments = Observable(Vector{Tuple{Point2f, Point2f}}());
     colors = Observable(Vector{Float32}());
-    linesegments!(ax, segments, color=colors,colormap=:vanimo);
+    linesegments!(ax, segments, color=colors,colormap=:vanimo,linewidth=lwidth);
     record(fig, "$(Title).gif", 1:Skips:length(Sim[1,1,:])-1; framerate=FR) do t
         current= vec(data[t])
         pos[] = current  # actualiza los puntos
@@ -462,7 +463,8 @@ function RecordVideoWithPolygons(
     poly_alpha=0.5,         
     Skips::Int=10,
     FR::Int=50,
-    pad::Float64=0.07
+    pad::Float64=0.07,
+    lwidth::Float64=1.0
 )
     T = size(Sim,3)
     data = [Point2f.(Sim[1,:,t], Sim[2,:,t]) for t in 1:T]
@@ -479,9 +481,8 @@ function RecordVideoWithPolygons(
     scatter!(ax, pos; color=:black, markersize=6)
     hidedecorations!(ax, ticks=false)
 
-
     polyplot = poly!(ax, polys; color=pcols)
-    lineplot = linesegments!(ax, segs; color=cols, colormap=cmap)
+    lineplot = linesegments!(ax, segs; color=cols, colormap=cmap,linewidth=lwidth)
 
     record(fig, "$(Title).mp4", 1:Skips:T-1; framerate=FR) do t
         pos[]   = vec(data[t])
