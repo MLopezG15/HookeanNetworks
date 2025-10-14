@@ -1,7 +1,7 @@
 module HookeanNetworks
 using LinearAlgebra,Statistics,GLMakie,GeometryBasics,ColorTypes
 
-export TriangLattice,ForceCalc,CentroMasa,RecordVideo,ReadState,InnerPolygons,CalcEnergies,RecordVideoWithPolygons,VerletViscous
+export TriangLattice,ForceCalc,CentroMasa,RecordVideo,ReadState,InnerPolygons,CalcEnergies,RecordVideoWithPolygons,VerletViscous,Unificar
 
 function Distancia(v1,v2) #Distancia entre 2 puntos
     return(norm(v2.-v1)) 
@@ -412,8 +412,8 @@ function ReadState(Kint::Vector{},Sim::Array{Float64,3},edges::Vector{Tuple{Int6
             vecinos=adjt[Int64(c[1]-N)]
             direc=[mean(Sim[1,vecinos,i])-Sim[1,c[1]-N,i],mean(Sim[2,vecinos,i])-Sim[2,c[1]-N,i]]
             #Δϕ=angulo(centr,centr+1-N,Sim[:,:,i])-angulo(centr,centr+1,Sim[:,:,i])
-            state=atan(direc[2],direc[1])            
-            R[j,i]=state
+            state=sign(atan(direc[2],direc[1]))          
+            R[j,i]=state*norm(direc.-[0,0])
         end
     end
     return R
@@ -485,6 +485,52 @@ function RecordVideoWithPolygons(
             pcols[] = [RGBAf(c.r, c.g, c.b, poly_alpha) for c in Ct]
         end
     end
+end
+
+function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;method=:x)
+    (N1,M1)=ObtenerLados(vertices1,edges1)
+    (N2,M2)=ObtenerLados(vertices2,edges2)
+
+    FinalEdge=[ntuple(_ -> 0,2) for _ in 1:length(edges1)+length(edges2)] 
+    FinalKvec=zeros(length(edges1)+length(edges2),2)
+    FinalKint=[ntuple(_ -> 0,2) for _ in 1:length(Kint1)+length(Kint2)]
+
+    if method==:x
+        FinalArray=zeros(2,N1*M1+(N2*M2)-N1)
+        if N1!=N2 
+            error("Los tamaños no coinciden")
+        end
+        FinalArray[:,1:size(vertices1,2)]=vertices1[:,:]
+        FinalArray[:,size(vertices1,2)+1:end]=vertices2[:,N1+1:end].+[norm(vertices1[:,N1].-vertices1[:,N1^2]),0]
+        for i in eachindex(edges1)
+            FinalEdge[i]=edges1[i]
+            FinalKvec[i,:]=Kvec1[i,:]
+        end
+        for i in eachindex(edges2)
+            FinalEdge[length(edges1)+i]=(edges2[i][1]+((N1*M1)-M1), edges2[i][2]+((N1*M1)-M1))
+            FinalKvec[length(edges1)+i,:]=Kvec2[i,:]
+        end
+        for i in eachindex(Kint1) 
+            FinalKint[i]=Kint1[i]
+        end
+        for i in eachindex(Kint2)
+            FinalKint[length(Kint1)+i]=(Kint2[i][1]+((N1*M1)-M1), Kint2[i][2]+((N1*M1)-M1))
+        end
+        FFinalKint=Any[FinalKint...]
+    end
+    if method==:y
+        FinalArray=zeros(2,N1*M1+(N2*M2)-M1)
+        if M1!=M2
+            error("Los tamaños no coinciden")
+        end
+
+        for i in eachindex(FinalEdge) 
+            FinalEdge[i]=edges2[2]
+        end
+        error("Still Under development")
+    end
+
+    return FinalArray,FinalEdge,FinalKvec,FFinalKint
 end
 
 end # module HookeanNetworks
