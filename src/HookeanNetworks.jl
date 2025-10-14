@@ -255,7 +255,7 @@ function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int
     disp = Observable(Vector{Vec2f}());  # desplazamientos
     initial = vec(data[1]);  # guarda las posiciones iniciales
     fig = Figure()
-    ax = Axis(fig[1, 1])
+    ax = Axis(fig[1, 1],aspect = 1)
     scatter!(pos)
     hidedecorations!(ax,ticks=false)
     segments = Observable(Vector{Tuple{Point2f, Point2f}}());
@@ -433,6 +433,23 @@ function CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Fr
     return K,U
 end
 
+equal_axes!(ax,x,y;pad=0.07)= begin
+    xmin, xmax = extrema(x)
+    ymin, ymax = extrema(y)
+
+    xcenter = (xmin + xmax)/2
+    ycenter = (ymin + ymax)/2
+    maxrange = max(xmax - xmin, ymax - ymin) / 2
+
+    # aplica padding relativo
+    maxrange *= (1 + pad)
+
+    limits!(ax,
+        (xcenter - maxrange, xcenter + maxrange),
+        (ycenter - maxrange, ycenter + maxrange)
+    )
+end
+
 function RecordVideoWithPolygons(
     Sim::Array{Float64,3},
     Title::String,
@@ -444,7 +461,8 @@ function RecordVideoWithPolygons(
     poly_cmap=:plasma,      
     poly_alpha=0.5,         
     Skips::Int=10,
-    FR::Int=50
+    FR::Int=50,
+    pad::Float64=0.07
 )
     T = size(Sim,3)
     data = [Point2f.(Sim[1,:,t], Sim[2,:,t]) for t in 1:T]
@@ -456,7 +474,8 @@ function RecordVideoWithPolygons(
     pcols = Observable(Vector{RGBAf}())
 
     fig = Figure()
-    ax = Axis(fig[1,1])
+    ax = Axis(fig[1,1],aspect = 1)
+    equal_axes!(ax,Sim[1,:,1],Sim[2,:,1],pad=pad)
     scatter!(ax, pos; color=:black, markersize=6)
     hidedecorations!(ax, ticks=false)
 
