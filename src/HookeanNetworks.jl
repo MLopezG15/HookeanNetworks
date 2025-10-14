@@ -249,12 +249,12 @@ function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},
     return seg,colors
 end
 
-function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64};Skips::Int64=10,FR::Int64=50,lwidth::Float64=1.0,pad::Float64=0.07)
+function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64};Skips::Int64=10,FR::Int64=50,lwidth::Float64=1.0,pad::Float64=0.07,fsize::Int64=100)
     data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(Sim[1,1,:])]
     pos = Observable(vec(data[1]));
     disp = Observable(Vector{Vec2f}());  # desplazamientos
     initial = vec(data[1]);  # guarda las posiciones iniciales
-    fig = Figure()
+    fig = Figure(size=(fsize,fsize))
     ax = Axis(fig[1, 1],aspect = 1)
     equal_axes!(ax,Sim[1,:,1],Sim[2,:,1],pad=pad)
     scatter!(pos)
@@ -464,7 +464,8 @@ function RecordVideoWithPolygons(
     Skips::Int=10,
     FR::Int=50,
     pad::Float64=0.07,
-    lwidth::Float64=1.0
+    lwidth::Float64=1.0,
+    fsize::Int64=100
 )
     T = size(Sim,3)
     data = [Point2f.(Sim[1,:,t], Sim[2,:,t]) for t in 1:T]
@@ -475,7 +476,7 @@ function RecordVideoWithPolygons(
     polys = Observable(Vector{GeometryBasics.Polygon}())
     pcols = Observable(Vector{RGBAf}())
 
-    fig = Figure()
+    fig = Figure(size=(fsize,fsize))
     ax = Axis(fig[1,1],aspect = 1)
     equal_axes!(ax,Sim[1,:,1],Sim[2,:,1],pad=pad)
     scatter!(ax, pos; color=:black, markersize=6)
