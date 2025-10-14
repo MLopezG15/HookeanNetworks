@@ -482,7 +482,7 @@ function RecordVideoWithPolygons(
             ]
         else
             # assume already colors
-            pcols[] = [RGBAf(c.r, c.g, c.b, poly_alpha) for c in Ct]
+            pcols[] = [RGBAf(c.r, c.g, c.b, c.alpha) for c in Ct]
         end
     end
 end
