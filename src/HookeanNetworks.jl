@@ -402,7 +402,7 @@ function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Fram
     return cycles
 end
 
-function ReadState(Kint::Vector{Any},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
+function ReadState(Kint::Vector{},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
     cycles=InnerPolygons(Kint,edges,Sim[:,:,1])
     adjt=build_adj(edges)
     R=zeros(length(cycles),length(Sim[1,1,:]))
@@ -464,7 +464,7 @@ function RecordVideoWithPolygons(
     polyplot = poly!(ax, polys; color=pcols)
     lineplot = linesegments!(ax, segs; color=cols, colormap=cmap)
 
-    record(fig, "$(Title).gif", 1:Skips:T-1; framerate=FR) do t
+    record(fig, "$(Title).mp4", 1:Skips:T-1; framerate=FR) do t
         pos[]   = vec(data[t])
         segs[], cols[] = build_segments(pos[], edges, Kvec[:,2])
 
