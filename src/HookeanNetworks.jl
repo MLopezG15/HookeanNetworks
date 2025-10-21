@@ -420,6 +420,7 @@ function ReadState(Kint::Vector{},Sim::Array{Float64,3},edges::Vector{Tuple{Int6
     return R
 end
 
+
 function CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},WCA::Bool=true,r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0)
     K=0.5*m*sum(VFrame[1,:].^2 +VFrame[2,:].^2)
     U=0
@@ -539,16 +540,64 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
         end
         FFinalKint=Any[FinalKint...]
     end
-    if method==:y
-        FinalArray=zeros(2,N1*M1+(N2*M2)-M1)
-        if M1!=M2
-            error("Los tamaños no coinciden")
+
+    if method == :y
+        if M1 != M2
+            error("Los sistemas no pueden unirse verticalmente si M1 != M2")
         end
 
-        for i in eachindex(FinalEdge) 
-            FinalEdge[i]=edges2[2]
+        #offset = (N1 * M1) - N1  # el número de vértices únicos del primer sistema sin repetir fila superior
+        FinalArray = zeros(2, N1 * M1 + N2 * M2 - M1)
+
+        # Copiar filas intercaladas: primero fila del sistema 1, luego fila del sistema 2, etc.
+        y_offset = norm(vertices1[:, N1] .- vertices1[:, 1])  # distancia entre filas
+
+        for j in 1:M1
+            # índices de la fila j en cada sistema
+            idx1 = ((j - 1) * N1 + 1):(j * N1)
+            idx2 = ((j - 1) * N2 + 1):(j * N2)
+
+            # fila del sistema 1
+            base1 = (j - 1) * (N1 + N2 - N1)
+            FinalArray[:, base1 + (1:N1)] = vertices1[:, idx1]
+
+            # fila del sistema 2 (excepto la primera si ya fue compartida)
+            if j == M1
+                # última fila del sistema 1 comparte con primera del sistema 2
+                continue
+            end
+            FinalArray[:, base1 + N1 + (1:N2)] = vertices2[:, idx2] .+ [0, y_offset]
         end
-        error("Still Under development")
+
+        # Reajuste de índices
+        for i in eachindex(edges1)
+            FinalEdge[i] = edges1[i]
+            FinalKvec[i, :] = Kvec1[i, :]
+        end
+
+        # Offset para edges2 (sin repetir fila compartida)
+        idx_offset = (M1 - 1) * N1
+        for i in eachindex(edges2)
+            FinalEdge[length(edges1) + i] = (
+                edges2[i][1] + idx_offset,
+                edges2[i][2] + idx_offset,
+            )
+            FinalKvec[length(edges1) + i, :] = Kvec2[i, :]
+        end
+
+        for i in eachindex(Kint1)
+            FinalKint[i] = Kint1[i]
+        end
+        for i in eachindex(Kint2)
+            FinalKint[length(Kint1) + i] = (
+                Kint2[i][1] + idx_offset,
+                Kint2[i][2] + idx_offset,
+            )
+        end
+
+        FFinalKint = Any[FinalKint...]
+
+        return FinalArray, FinalEdge, FinalKvec, FFinalKint
     end
 
     return FinalArray,FinalEdge,FinalKvec,FFinalKint
