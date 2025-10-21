@@ -559,14 +559,14 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
 
             # fila del sistema 1
             base1 = (j - 1) * (N1 + N2 - N1)
-            FinalArray[:, base1 + (1:N1)] = vertices1[:, idx1]
+            FinalArray[:, base1 .+ (1:N1)] = vertices1[:, idx1]
 
             # fila del sistema 2 (excepto la primera si ya fue compartida)
             if j == M1
                 # última fila del sistema 1 comparte con primera del sistema 2
                 continue
             end
-            FinalArray[:, base1 + N1 + (1:N2)] = vertices2[:, idx2] .+ [0, y_offset]
+            FinalArray[:, base1 .+ N1 .+ (1:N2)] = vertices2[:, idx2] .+ [0, y_offset]
         end
 
         # Reajuste de índices
