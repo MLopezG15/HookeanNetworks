@@ -550,7 +550,7 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
         FinalArray = zeros(2, N1 * M1 + N2 * M2 - M1)
 
         # Copiar filas intercaladas: primero fila del sistema 1, luego fila del sistema 2, etc.
-        y_offset = norm(vertices1[:, N1] .- vertices1[:, 1])  # distancia entre filas
+        y_offset = norm(vertices1[:, N1+1] .- vertices1[:, 1])  # distancia entre filas
 
         for j in 1:M1
             # índices de la fila j en cada sistema
@@ -566,7 +566,7 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
                 # última fila del sistema 1 comparte con primera del sistema 2
                 continue
             end
-            FinalArray[:, base1 .+ N1 .+ (1:N2)] = vertices2[:, idx2] .+ [0, y_offset]
+            FinalArray[:, base1 .+ N1 .+ (1:N2)] = vertices2[:, idx2] .+ [0, y_offset *j]
         end
 
         # Reajuste de índices
