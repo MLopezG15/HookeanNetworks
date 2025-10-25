@@ -629,52 +629,16 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
 
         #offset = (N1 * M1) - N1  # el número de vértices únicos del primer sistema sin repetir fila superior
         FinalArray = zeros(2, N1 * M1 + N2 * M2 - M1)
-
-        # Copiar filas intercaladas: primero fila del sistema 1, luego fila del sistema 2, etc.
-        y_offset = norm(vertices1[:, N1+1] .- vertices1[:, 1])  # distancia entre filas
-
-        for j in 1:M1
-            # índices de la fila j en cada sistema
-            idx1 = ((j - 1) * N1 + 1):(j * N1)
-            idx2 = ((j - 1) * N2 + 1):(j * N2)
-
-            # fila del sistema 1
-            base1 = (j - 1) * (N1 + N2 - N1)
-            FinalArray[:, base1 .+ (1:N1)] = vertices1[:, idx1]
-
-            # fila del sistema 2 (excepto la primera si ya fue compartida)
-            if j == M1
-                # última fila del sistema 1 comparte con primera del sistema 2
-                continue
-            end
-            FinalArray[:, base1 .+ N1 .+ (1:N2)] = vertices2[:, idx2] .+ [0, y_offset *j]
+        vertices2.+=[0,Distancia(vertices1[2,1],vertices1[2,N1])]
+        N1Completed=1;N2Completed=0
+        FinalArray[1:N1]=vertices1[1:N1]
+        for i in 1:M1
+            FinalArray[(N1*N1Completed):(N1+N2-1)*(N1Completed+N2Completed)]=vertices2[(N2*N2Completed+1):(N2*N2Completed+1)+N2]
+            N2Completed+=1
+            FinalArray[(N1+N2)*(N1Completed+N2Completed):((N1+N2)*(N1Completed+N2Completed)+N1)]=vertices1[(N1*N1Completed+1):(N1*N1Completed+1)+N1]
+            N1Completed+=1
         end
-
-        # Reajuste de índices
-        for i in eachindex(edges1)
-            FinalEdge[i] = edges1[i]
-            FinalKvec[i, :] = Kvec1[i, :]
-        end
-
-        # Offset para edges2 (sin repetir fila compartida)
-        idx_offset = (M1 - 1) * N1
-        for i in eachindex(edges2)
-            FinalEdge[length(edges1) + i] = (
-                edges2[i][1] + idx_offset,
-                edges2[i][2] + idx_offset,
-            )
-            FinalKvec[length(edges1) + i, :] = Kvec2[i, :]
-        end
-
-        for i in eachindex(Kint1)
-            FinalKint[i] = Kint1[i]
-        end
-        for i in eachindex(Kint2)
-            FinalKint[length(Kint1) + i] = (
-                Kint2[i][1] + idx_offset,
-                Kint2[i][2] + idx_offset,
-            )
-        end
+        FinalArray[((N1*M1)+(N2*M2)-M1-N2):((N1*M1)+(N2*M2)-M1)]=vertices2[((M2*N2)-N2):end]
 
         FFinalKint = Any[FinalKint...]
 
