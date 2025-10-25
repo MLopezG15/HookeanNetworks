@@ -36,6 +36,12 @@ function acomodar(vertices)
     return Ver
 end
 
+
+"""
+    CentroMasa(Frame)
+
+Calcula el centro de masa (promedio aritmético de coordenadas) de un conjunto de vértices.
+"""
 function CentroMasa(Frame)
     Xmasa=mean(Frame[1,:])
     Ymasa=mean(Frame[2,:])
@@ -159,6 +165,16 @@ function CortEnlOrd(edges, vertices,η,ζ,k_normal; k_cut=0.0, )
     return k,Kint
 end
 
+
+
+"""
+    TriangLattice(N::Int; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0)
+
+Genera una red triangular (lattice) centrada en el origen y construye la información de enlaces/constantes elásticas.
+
+# Descripción
+Construye un lattice triangular de tamaño `N` (se genera un bloque `(2*⌊N/2⌋+1) × (2*⌊N/2⌋+1)` internamente), calcula la lista de vértices, la lista de aristas (edges), y arma un vector `Kvec` con constantes elásticas por arista. Opcionalmente aplica un esquema de corte de enlaces según `MethodCut`.
+"""
 function TriangLattice(N::Int; MethodCut::String="None", η=nothing, ζ=nothing, kval::Float64=1.0)
     a1 = [1, 0]
     a2 = [cos(π/3), sin(π/3)]
@@ -199,6 +215,15 @@ function wca_force(r,ε, σ)
     end
 end
 
+
+"""
+    ForceCalc(edges, vertices, Kvec, t; WCA=true, GaussPulse=true, r0=1.0, σF=0.5, t0=3.0, A=1.0, M=1, ε=0.1, σ=0.35, GaussCutOff=10.0)
+
+Calcula las fuerzas sobre cada vértice debidas a enlaces Hookeanos, potenciales WCA y un pulso gaussiano opcional.
+
+# Descripción
+Para cada enlace calcula la fuerza elástica según constante `k` en `Kvec` y distancia de reposo `r0`. Opcionalmente añade la proyección del potencial repulsivo WCA y añade un pulso gaussiano localizado sobre el vértice `M`.
+"""
 function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},Kvec::Matrix{Float64},t::Float64;WCA::Bool=true,GaussPulse::Bool=true,r0::Float64=1.0,σF::Float64=0.5,t0::Float64=3.0,A::Float64=1.0,M::Int64=1,ε::Float64=0.1, σ::Float64=0.35,GaussCutOff::Float64=10.0)
     F=zeros(size(vertices))
     r1=[];r2=[];
@@ -231,6 +256,15 @@ function ForceCalc(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},K
     return F
 end
 
+
+"""
+    VerletViscous(edges, vertices, V, dt, Kvec, t; m=1.0, γ=0.2, β=1.0, kwargs...)
+
+Actualiza posiciones y velocidades mediante un esquema tipo Verlet con amortiguamiento viscous (Langevin/termalización aproximada).
+
+# Descripción
+Integra las ecuaciones de movimiento con un término de fricción lineal `γ` y ruido térmico asociado (temperatura inversa `β`). Internamente llama a `ForceCalc` para obtener fuerzas.
+"""
 function VerletViscous(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V::Matrix{Float64},dt::Float64,Kvec::Matrix{Float64},t::Float64;m::Float64=1.0,γ::Float64=0.2,β=1.0,kwargs...)
     α=1+((γ*dt)/2*m)
     λ=1-((γ*dt)/2*m)
@@ -249,7 +283,13 @@ function build_segments(points::Vector{Point2f}, edges::Vector{Tuple{Int, Int}},
     return seg,colors
 end
 
-function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64};Skips::Int64=10,FR::Int64=50,lwidth::Float64=1.0,pad::Float64=0.07,fsize::Int64=100)
+
+"""
+    RecordVideo(Sim, Title, edges, Kvec; Skips=10, FR=50, lwidth=1.0, pad=0.07, fsize=850)
+
+Graba un gif animado de la simulación de posiciones de vértices y aristas coloreadas por `Kvec[:,2]`.
+"""
+function RecordVideo(Sim::Array{Float64,3},Title::String,edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64};Skips::Int64=10,FR::Int64=50,lwidth::Float64=1.0,pad::Float64=0.07,fsize::Int64=850)
     data = [Point2f.(Sim[1, :, t],Sim[2,:,t]) for t in eachindex(Sim[1,1,:])]
     pos = Observable(vec(data[1]));
     disp = Observable(Vector{Vec2f}());  # desplazamientos
@@ -394,7 +434,14 @@ function ObtenerLados(vertices,edges)
     return (N,M)
 end
 
+"""
+    InnerPolygons(Kint, edges, Frame)
 
+Encuentra los ciclos (polígonos interiores) formados alrededor de centroides definidos por `Kint`.
+
+# Descripción
+A partir de la lista de aristas internas `Kint` y la topología `edges`, construye un grafo local y para el `Frame` (posición base) busca ciclos cerrados que correspondan a polígonos internos. Devuelve cada polígono como una lista de índices de vértices ordenados.
+"""
 function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Frame::Matrix{Float64})
     (N,M)=ObtenerLados(Frame,edges)
     adj=build_adj(Kint)
@@ -403,6 +450,15 @@ function InnerPolygons(Kint::Vector{Any}, edges::Vector{Tuple{Int64,Int64}},Fram
     return cycles
 end
 
+
+"""
+    ReadState(Kint, Sim, edges)
+
+Analiza la configuración interna de polígonos (ciclos) y devuelve una matriz de 'estados' de cada polígono a lo largo del tiempo.
+
+# Descripción
+Identifica polígonos internos a partir de `Kint` y `edges`, luego para cada frame calcula una medida de estado (dirección y magnitud del vector medio desde el centroide hacia sus vecinos). Útil para estudiar señales colectivas dentro de polígonos internos.
+"""
 function ReadState(Kint::Vector{},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
     cycles=InnerPolygons(Kint,edges,Sim[:,:,1])
     adjt=build_adj(edges)
@@ -421,6 +477,15 @@ function ReadState(Kint::Vector{},Sim::Array{Float64,3},edges::Vector{Tuple{Int6
 end
 
 
+"""
+    CalcEnergies(edges, Kvec, Frame, VFrame; WCA=true, r0=1.0, ε=0.1, σ=0.35, m=1.0)
+
+Calcula la energía cinética y potencial total del sistema para un frame dado.
+
+# Descripción
+- `K` es la energía cinética total: ½ m Σ v².  
+- `U` es la energía potencial elástica por hebra (1/2 k Δr²) más, cuando aplica, la contribución de potencial WCA.
+"""
 function CalcEnergies(edges::Vector{Tuple{Int64,Int64}},Kvec::Matrix{Float64},Frame::Matrix{Float64},VFrame::Matrix{Float64},WCA::Bool=true,r0::Float64=1.0,ε::Float64=0.1, σ::Float64=0.35,m::Float64=1.0)
     K=0.5*m*sum(VFrame[1,:].^2 +VFrame[2,:].^2)
     U=0
@@ -452,6 +517,14 @@ equal_axes!(ax,x,y;pad=0.07)= begin
     )
 end
 
+"""
+    RecordVideoWithPolygons(Sim, Title, edges, Kvec, poly_vertices, poly_colors; cmap=:vanimo, poly_cmap=:plasma, poly_alpha=0.5, Skips=10, FR=50, pad=0.07, lwidth=1.0, fsize=850)
+
+Graba un video (MP4) de la simulación incluyendo polígonos coloreados dinámicamente.
+
+# Descripción
+Genera un archivo `Title.mp4` mostrando la evolución de los puntos, las aristas (coloreadas por `Kvec[:,2]`) y polígonos definidos por `poly_vertices`. `poly_colors` puede ser un arreglo de valores por polígono por frame o colores ya definidos.
+"""
 function RecordVideoWithPolygons(
     Sim::Array{Float64,3},
     Title::String,
@@ -466,7 +539,7 @@ function RecordVideoWithPolygons(
     FR::Int=50,
     pad::Float64=0.07,
     lwidth::Float64=1.0,
-    fsize::Int64=100
+    fsize::Int64=850
 )
     T = size(Sim,3)
     data = [Point2f.(Sim[1,:,t], Sim[2,:,t]) for t in 1:T]
@@ -509,6 +582,14 @@ function RecordVideoWithPolygons(
     end
 end
 
+"""
+    Unificar(vertices1, vertices2, edges1, edges2, Kvec1, Kvec2, Kint1, Kint2; method=:x)
+
+Une dos redes (sistemas) en un único sistema combinado, soportando dos modos de unión (`:x` u `:y`).
+
+# Descripción
+Concatena vértices y ajusta índices de aristas y listas internas (`Kint`) para producir una única red. `method=:x` une en la dirección x (horizontales compartidas), `method=:y` en la dirección y (stacking vertical). Reajusta offsets de índices y devuelve `FinalArray`, `FinalEdge`, `FinalKvec`, `FFinalKint`.
+"""
 function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;method=:x)
     (N1,M1)=ObtenerLados(vertices1,edges1)
     (N2,M2)=ObtenerLados(vertices2,edges2)
