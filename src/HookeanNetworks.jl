@@ -604,7 +604,7 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
             error("Los tamaños no coinciden")
         end
         FinalArray[:,1:size(vertices1,2)]=vertices1[:,:]
-        FinalArray[:,size(vertices1,2)+1:end]=vertices2[:,N1+1:end].+[norm(vertices1[:,N1].-vertices1[:,N1^2]),0]
+        FinalArray[:,size(vertices1,2)+1:end]=vertices2[:,N1+1:end].+[norm(vertices1[:,N1].-vertices1[:,(N1*M1)]),0]
         for i in eachindex(edges1)
             FinalEdge[i]=edges1[i]
             FinalKvec[i,:]=Kvec1[i,:]
