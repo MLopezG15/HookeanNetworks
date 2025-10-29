@@ -638,7 +638,7 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
             FinalArray[(N1*(N1Completed)+N2*(N2Completed)):(N1*(N1Completed)+N2*(N2Completed)+N1-1)]=vertices1[(N1*(N1Completed+1))+1:(N1*(N1Completed+1))+N1]
             N1Completed+=1
         end
-        FinalArray[((N1*M1)+(N2*M2)-M1-N2):((N1*M1)+(N2*M2)-M1)]=vertices2[((M2*N2)-N2):end]
+        FinalArray[((N1*M1)+(N2*M2)-M1-N2):((N1*M1)+(N2*M2)-M1)]=vertices2[((M2*N2)-N2):(M2*N2)]
         
         offsetN1(n::Number) = n + (div(n,N2)*N2)
         offsetN2(n::Number) = n + (div(n,N1)*N1)+N1
