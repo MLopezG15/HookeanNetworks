@@ -627,9 +627,8 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
             error("Los sistemas no pueden unirse verticalmente si M1 != M2")
         end
 
-        #offset = (N1 * M1) - N1  # el número de vértices únicos del primer sistema sin repetir fila superior
         FinalArray = zeros(2, N1 * M1 + N2 * M2 - M1)
-        vertices2.+= (vertices2[:,1].- vertices1[:,1])
+        vertices2.+= (vertices1[:,N1].- vertices1[:,1])
         N1Completed=1;N2Completed=1
         FinalArray[1:N1]=vertices1[1:N1]
         for i in 1:M1
