@@ -645,11 +645,11 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
 
         for i in eachindex(edges1) 
             FinalEdge[i]=(offsetN1(edges1[i][1]),offsetN1(edges1[i][2]))
-            FinalKvec[i,:]=Kvec1[:,:]
+            FinalKvec[i,:]=Kvec1[i,:]
         end
         for i in eachindex(edges2) 
             FinalEdge[length(edges1)+i]=(offsetN2(edges2[i][1]),offsetN2(edges2[i][2]))
-            FinalKvec[length(edges1)+i,:]=Kvec1[:,:]
+            FinalKvec[length(edges1)+i,:]=Kvec1[i,:]
         end
 
         for i in eachindex(Kint1) 
