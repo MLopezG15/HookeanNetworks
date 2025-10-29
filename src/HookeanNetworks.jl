@@ -617,7 +617,7 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
             FinalKint[i]=Kint1[i]
         end
         for i in eachindex(Kint2)
-            FinalKint[length(Kint1)+i]=(Kint2[i][1]+((N1*M1)-M1), Kint2[i][2]+((N1*M1)-M1))
+            FinalKint[length(Kint1)+i]=(Kint2[i][1]+((N1*M1)-N1), Kint2[i][2]+((N1*M1)-N1))
         end
         FFinalKint=Any[FinalKint...]
     end
