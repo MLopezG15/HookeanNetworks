@@ -630,10 +630,10 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
         #offset = (N1 * M1) - N1  # el número de vértices únicos del primer sistema sin repetir fila superior
         FinalArray = zeros(2, N1 * M1 + N2 * M2 - M1)
         vertices2.+=[0,Distancia(vertices1[2,1],vertices1[2,N1])]
-        N1Completed=1;N2Completed=0
+        N1Completed=1;N2Completed=1
         FinalArray[1:N1]=vertices1[1:N1]
         for i in 1:M1
-            FinalArray[(N1*N1Completed):((N1*N1Completed)+(N2*(N2Completed+1))-1)]=vertices2[(N2*(N2Completed+1))+1:(N2*(N2Completed+1))+N2]
+            FinalArray[((N1*N1Completed)+(N2*(N2Completed-1))):((N1*N1Completed)+(N2*(N2Completed-1))-1)]=vertices2[(N2*(N2Completed-1))+1:(N2*(N2Completed-1))+N2]
             N2Completed+=1
             FinalArray[(N1*(N1Completed)+N2*(N2Completed)):(N1*(N1Completed)+N2*(N2Completed)+N1-1)]=vertices1[(N1*(N1Completed+1))+1:(N1*(N1Completed+1))+N1]
             N1Completed+=1
