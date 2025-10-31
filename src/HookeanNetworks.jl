@@ -631,9 +631,9 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
         vertices2.+= (vertices1[:,N1].- vertices1[:,1])
         N1Completed=1;N2Completed=0
         #FinalArray[1:N1]=vertices1[1:N1]
-        for i in M1:M1:((N1*M1)+(N2*M2)-M1)
-            FinalArray[i:i+N1-1]=vertices1[(i-div(i,N2))%N1:((i-div(i,N2))%N1)+N1-1]
-            FinalArray[i+N1:i+N1+N2-1]=vertices2[(i-div(i,N1))%N2:((i-div(i,N1))%N2)+N2-1]
+        for i in 1:M1:((N1*M1)+(N2*M2)-M1)-N2
+            FinalArray[:,i:i+N1-1]=vertices1[:,(i-div(i,N2))%N1:((i-div(i,N2))%N1)+N1-1]
+            FinalArray[:,i+N1:i+N1+N2-1]=vertices2[:,(i-div(i,N1))%N2:((i-div(i,N1))%N2)+N2-1]
         end
         #FinalArray[((N1*M1)+(N2*M2)-M1-N2):((N1*M1)+(N2*M2)-M1)]=vertices2[((M2*N2)-N2):(M2*N2)]
         
