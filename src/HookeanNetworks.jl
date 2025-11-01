@@ -626,19 +626,27 @@ function Unificar(vertices1,vertices2,edges1,edges2,Kvec1,Kvec2,Kint1,Kint2;meth
         if M1 != M2
             error("Los sistemas no pueden unirse verticalmente si M1 != M2")
         end
-
-        FinalArray = zeros(2, N1 * M1 + N2 * M2 - M1)
-        vertices2.+= (vertices1[:,N1].- vertices1[:,1])
-        N1Completed=1;N2Completed=0
-        #FinalArray[1:N1]=vertices1[1:N1]
-        for i in 1:M1:((N1*M1)+(N2*M2)-M1)-N2
-            FinalArray[:,i:i+N1-1]=vertices1[:,(i-(div(i,N2)))%(N1+1):((i-(div(i,N2)))%(N1+1))+N1-1]
-            FinalArray[:,i+N1:i+N1+N2-1]=vertices2[:,(i-div(i,N1))%(N2+1):((i-div(i,N1))%(N2+1))+N2-1]
+        FinalArray = zeros(2, (N1*M1)+(N2*M2)-M1)
+        #vertices2.+= (vertices1[:,N1].- vertices1[:,1])
+        ite=0
+        for i in 1:N1+N2:((N1*M1)+(N2*M2)-M1)-N2-N1
+            FinalArray[:,i:i+N1-1]=vertices1[:,(div(i,N1+N2)+1)+(ite*(N1-1)):(div(i,N1+N2)+1)+N1-1 +(ite*(N1-1))]
+            FinalArray[:,i+N1:i+N1+N2-1]=vertices2[:,(div(i,N1+N2)+1)+(ite*(N2-1)):(div(i,N1+N2)+1)+N2-1+(ite*(N2-1))].+ (vertices1[:,N1].- vertices1[:,1])
+            ite+=1
         end
-        offsetN1(n::Number) = n + (div(n,N1)*N2)
-        offsetN2(n::Number) = n + ((div(n,N2)+1)*N1)-1
+        
 
-        for i in eachindex(edges1) 
+        #FinalArray[:,((N1*M1)+(N2*M2)-M1)-N2-N1+1:((N1*M1)+(N2*M2)-M1)-N2]=vertices1[:,end-N1+1:end]
+        FinalArray[:,end-N2+1:end]=vertices2[:,end-N2+1:end].+ (vertices1[:,N1].- vertices1[:,1])
+        
+
+        #fig=scatter(FinalArray[1,:],FinalArray[2,:])
+        #save("Attemp.png",fig)
+
+        offsetN1(n::Number) = n + (div(n,N1)*N2)
+        offsetN2(n::Number) = n + ((div(n,N2)+1)*N1)+1
+
+        for i in eachindex(edges1)
             FinalEdge[i]=(offsetN1(edges1[i][1]),offsetN1(edges1[i][2]))
             FinalKvec[i,:]=Kvec1[i,:]
         end
