@@ -258,12 +258,12 @@ end
 
 
 """
-    VerletViscous(edges, vertices, V, dt, Kvec, t; m=1.0, γ=0.2, β=1.0, kwargs...)
+    VerletViscous(edges, vertices, V, dt, Kvec, t; m=1.0, γ=0.2, Temp=1.0, kwargs...)
 
 Actualiza posiciones y velocidades mediante un esquema tipo Verlet con amortiguamiento viscous (Langevin/termalización aproximada).
 
 # Descripción
-Integra las ecuaciones de movimiento con un término de fricción lineal `γ` y ruido térmico asociado (temperatura inversa `β`). Internamente llama a `ForceCalc` para obtener fuerzas.
+Integra las ecuaciones de movimiento con un término de fricción lineal `γ` y ruido térmico asociado (temperatura considerando k_B=1 `Temp`). Internamente llama a `ForceCalc` para obtener fuerzas.
 """
 function VerletViscous(edges::Vector{Tuple{Int64,Int64}},vertices::Matrix{Float64},V::Matrix{Float64},dt::Float64,Kvec::Matrix{Float64},t::Float64;m::Float64=1.0,γ::Float64=0.2,Temp=1.0,kwargs...)
     α=1+((γ*dt)/2*m)
@@ -459,8 +459,8 @@ Analiza la configuración interna de polígonos (ciclos) y devuelve una matriz d
 # Descripción
 Identifica polígonos internos a partir de `Kint` y `edges`, luego para cada frame calcula una medida de estado (dirección y magnitud del vector medio desde el centroide hacia sus vecinos). Útil para estudiar señales colectivas dentro de polígonos internos.
 """
-function ReadState(Kint::Vector{},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}})
-    cycles=InnerPolygons(Kint,edges,Sim[:,:,1])
+function ReadState(Kint::Vector{},Sim::Array{Float64,3},edges::Vector{Tuple{Int64,Int64}},cycles)
+    #cycles=InnerPolygons(Kint,edges,Sim[:,:,1])
     adjt=build_adj(edges)
     R=zeros(length(cycles),length(Sim[1,1,:]))
     (N,_)=ObtenerLados(Sim[:,:,1],edges)
